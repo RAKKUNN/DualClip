@@ -21,10 +21,13 @@ struct SlotRowView: View {
 
             // Content area
             VStack(alignment: .leading, spacing: 2) {
-                Text(slot.preview())
-                    .font(.system(size: 13))
-                    .foregroundColor(slot.isEmpty ? .secondary : .primary)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    contentTypeIcon
+                    Text(slot.preview())
+                        .font(.system(size: 13))
+                        .foregroundColor(slot.isEmpty ? .secondary : .primary)
+                        .lineLimit(1)
+                }
 
                 if let timestamp = slot.timestamp {
                     Text(timestamp, style: .relative)
@@ -34,6 +37,15 @@ struct SlotRowView: View {
             }
 
             Spacer()
+
+            // Image thumbnail (for image content)
+            if slot.contentType == .image, let nsImage = slot.imageContent {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 28, height: 28)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
 
             // Clear button (only for non-empty B/C slots)
             if identifier != .A && !slot.isEmpty {
@@ -54,6 +66,28 @@ struct SlotRowView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(slot.isEmpty ? Color.clear : Color.accentColor.opacity(0.05))
         )
+    }
+
+    @ViewBuilder
+    private var contentTypeIcon: some View {
+        switch slot.contentType {
+        case .image:
+            Image(systemName: "photo")
+                .font(.system(size: 10))
+                .foregroundColor(.green)
+        case .fileURL:
+            Image(systemName: "doc")
+                .font(.system(size: 10))
+                .foregroundColor(.blue)
+        case .rtf:
+            Image(systemName: "text.badge.star")
+                .font(.system(size: 10))
+                .foregroundColor(.purple)
+        case .text:
+            EmptyView()
+        case .none:
+            EmptyView()
+        }
     }
 
     private var badgeColor: Color {

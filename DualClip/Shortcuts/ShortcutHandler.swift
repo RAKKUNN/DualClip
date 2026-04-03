@@ -48,11 +48,8 @@ final class ShortcutHandler {
         }
     }
 
-    /// Paste content from the specified slot using atomic paste.
+    /// Paste content from the specified slot using atomic paste (all types).
     private func handlePaste(from slot: SlotIdentifier) {
-        guard let content = clipboardManager.content(for: slot), !content.isEmpty else {
-            return
-        }
-        AtomicPasteService.shared.paste(slotContent: content, clipboardManager: clipboardManager)
+        AtomicPasteService.shared.paste(from: slot, clipboardManager: clipboardManager)
     }
 }
