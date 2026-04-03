@@ -21,10 +21,6 @@ final class AtomicPasteService {
     ///   - slotContent: The text content to paste
     ///   - clipboardManager: The clipboard manager to coordinate with
     func paste(slotContent: String, clipboardManager: ClipboardManager) {
-        guard AccessibilityService.shared.isAccessibilityGranted() else {
-            return
-        }
-
         // 1. Backup current system clipboard
         let backup = clipboardManager.backupSystemClipboard()
 
@@ -62,10 +58,6 @@ final class AtomicPasteService {
     /// Simulate a ⌘C (Copy) keystroke using CGEvent.
     /// Used to capture the current selection into the system clipboard.
     func simulateCopy() {
-        guard AccessibilityService.shared.isAccessibilityGranted() else {
-            return
-        }
-
         let source = CGEventSource(stateID: .hidSystemState)
 
         // Key code 8 = 'C' on US keyboard layout
