@@ -46,22 +46,30 @@ struct MenuBarView: View {
 
             // Footer
             HStack {
-                Button {
-                    if #available(macOS 14.0, *) {
-                        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    } else {
+                if #available(macOS 14.0, *) {
+                    SettingsLink {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gear")
+                            Text("Settings")
+                        }
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Button {
                         NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+                        NSApp.activate(ignoringOtherApps: true)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gear")
+                            Text("Settings")
+                        }
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
                     }
-                    NSApp.activate(ignoringOtherApps: true)
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "gear")
-                        Text("Settings")
-                    }
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 Spacer()
 

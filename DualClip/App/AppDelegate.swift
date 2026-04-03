@@ -3,6 +3,13 @@ import AppKit
 /// App delegate handling lifecycle events and initial setup.
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        // Register bundle identifier for SPM executable (no embedded Info.plist)
+        UserDefaults.standard.register(defaults: [
+            "NSApplicationBundleIdentifier": "com.dualclip.app"
+        ])
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Check accessibility permission on launch
         if !AccessibilityService.shared.isAccessibilityGranted() {
