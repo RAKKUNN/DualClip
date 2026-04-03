@@ -16,16 +16,18 @@ final class AtomicPasteService {
 
     private init() {}
 
-    /// Perform an atomic paste from the given slot.
+    /// Perform an atomic paste from the given slot (supports all content types).
     /// - Parameters:
-    ///   - slotContent: The text content to paste
+    ///   - slot: The slot identifier to paste from
     ///   - clipboardManager: The clipboard manager to coordinate with
-    func paste(slotContent: String, clipboardManager: ClipboardManager) {
-        // 1. Backup current system clipboard
+    func paste(from slot: SlotIdentifier, clipboardManager: ClipboardManager) {
+        guard clipboardManager.hasContent(for: slot) else { return }
+
+        // 1. Backup current system clipboard (all types)
         let backup = clipboardManager.backupSystemClipboard()
 
-        // 2. Replace system clipboard with slot data
-        clipboardManager.writeToSystemClipboard(slotContent)
+        // 2. Replace system clipboard with slot data (all types)
+        clipboardManager.writeSlotToSystemClipboard(slot)
 
         // 3. Simulate ⌘V keystroke
         simulatePaste()

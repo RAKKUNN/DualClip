@@ -55,26 +55,27 @@ final class ClipboardManager: ObservableObject {
         syncSlotA()
     }
 
-    /// Sync Slot A with the current system clipboard content.
+    /// Sync Slot A with the current system clipboard content (all types).
     private func syncSlotA() {
-        if let text = NSPasteboard.general.string(forType: .string) {
-            slotA.store(text)
-            objectWillChange.send()
-        }
+        let pasteboard = NSPasteboard.general
+        guard pasteboard.pasteboardItems?.isEmpty == false else { return }
+        slotA.store(from: pasteboard)
+        objectWillChange.send()
     }
 
     // MARK: - Slot Operations
 
-    /// Copy current system clipboard content into the specified slot.
+    /// Copy current system clipboard content into the specified slot (all types).
     func copyToSlot(_ identifier: SlotIdentifier) {
-        guard let text = NSPasteboard.general.string(forType: .string) else { return }
-        slot(for: identifier).store(text)
+        let pasteboard = NSPasteboard.general
+        guard pasteboard.pasteboardItems?.isEmpty == false else { return }
+        slot(for: identifier).store(from: pasteboard)
         objectWillChange.send()
     }
 
-    /// Get the content of a specific slot.
-    func content(for identifier: SlotIdentifier) -> String? {
-        slot(for: identifier).content
+    /// Check if a slot has content available for pasting.
+    func hasContent(for identifier: SlotIdentifier) -> Bool {
+        !slot(for: identifier).isEmpty
     }
 
     /// Clear a specific slot.
@@ -90,24 +91,26 @@ final class ClipboardManager: ObservableObject {
         objectWillChange.send()
     }
 
-    /// Write text to the system clipboard, marking it to be ignored by polling.
-    func writeToSystemClipboard(_ text: String) {
+    /// Write a slot's full content to the system clipboard.
+    func writeSlotToSystemClipboard(_ identifier: SlotIdentifier) {
         ignoreNextChange = true
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-        lastChangeCount = pasteboard.changeCount
+        slot(for: identifier).write(to: NSPasteboard.general)
+        lastChangeCount = NSPasteboard.general.changeCount
     }
 
-    /// Backup current system clipboard content.
-    func backupSystemClipboard() -> String? {
-        NSPasteboard.general.string(forType: .string)
+    /// Backup entire system clipboard into a temporary slot.
+    func backupSystemClipboard() -> ClipboardSlot {
+        let backup = ClipboardSlot()
+        backup.store(from: NSPasteboard.general)
+        return backup
     }
 
-    /// Restore previously backed-up content to the system clipboard.
-    func restoreSystemClipboard(_ text: String?) {
-        guard let text = text else { return }
-        writeToSystemClipboard(text)
+    /// Restore previously backed-up clipboard contents.
+    func restoreSystemClipboard(_ backup: ClipboardSlot) {
+        guard !backup.isEmpty else { return }
+        ignoreNextChange = true
+        backup.write(to: NSPasteboard.general)
+        lastChangeCount = NSPasteboard.general.changeCount
     }
 
     // MARK: - Helpers
