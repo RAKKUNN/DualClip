@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" alt="DualClip Icon" width="100" height="100">
+</p>
+
 # DualClip User Guide
 
 DualClip is a multi-slot clipboard manager that lives in the macOS menu bar. It keeps your existing clipboard (⌘C/⌘V) untouched while giving you two additional slots (B and C) accessible via customizable keyboard shortcuts.

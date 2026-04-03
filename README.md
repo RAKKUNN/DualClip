@@ -1,6 +1,13 @@
-# DualClip
+<p align="center">
+  <img src="icon.png" alt="DualClip Icon" width="128" height="128">
+</p>
 
-A lightweight macOS menu bar app that provides **multi-slot clipboard management**. Unlike history-based clipboard managers, DualClip gives you instant access to dedicated clipboard slots via customizable keyboard shortcuts.
+<h1 align="center">DualClip</h1>
+
+<p align="center">
+  A lightweight macOS menu bar app that provides <b>multi-slot clipboard management</b>.<br>
+  Unlike history-based clipboard managers, DualClip gives you instant access to dedicated clipboard slots via customizable keyboard shortcuts.
+</p>
 
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
@@ -41,8 +48,8 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 
 ```bash
 # Clone the repository
-git clone https://github.com/dualclip/dualclip.git
-cd dualclip
+git clone https://github.com/RAKKUNN/DualClip.git
+cd DualClip
 
 # Open in Xcode
 open Package.swift
