@@ -8,6 +8,10 @@ final class AccessibilityService: ObservableObject {
 
     @Published var isGranted: Bool
 
+    /// Prevents the system dialog from being shown too frequently.
+    private var lastPromptDate: Date = .distantPast
+    private let promptCooldown: TimeInterval = 30
+
     private init() {
         isGranted = AXIsProcessTrusted()
     }
@@ -23,8 +27,13 @@ final class AccessibilityService: ObservableObject {
 
     /// Prompt the system accessibility permission dialog.
     /// On macOS, this opens System Settings > Privacy & Security > Accessibility.
+    /// Throttled to avoid repeated dialogs within the cooldown period.
     func requestAccessibility() {
-        let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue(): true] as CFDictionary
+        let now = Date()
+        guard now.timeIntervalSince(lastPromptDate) > promptCooldown else { return }
+        lastPromptDate = now
+        let key = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        let options = [key: true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
     }
 

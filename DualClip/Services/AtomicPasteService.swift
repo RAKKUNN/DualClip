@@ -22,7 +22,6 @@ final class AtomicPasteService {
     ///   - clipboardManager: The clipboard manager to coordinate with
     func paste(slotContent: String, clipboardManager: ClipboardManager) {
         guard AccessibilityService.shared.isAccessibilityGranted() else {
-            AccessibilityService.shared.requestAccessibility()
             return
         }
 
@@ -64,7 +63,6 @@ final class AtomicPasteService {
     /// Used to capture the current selection into the system clipboard.
     func simulateCopy() {
         guard AccessibilityService.shared.isAccessibilityGranted() else {
-            AccessibilityService.shared.requestAccessibility()
             return
         }
 
