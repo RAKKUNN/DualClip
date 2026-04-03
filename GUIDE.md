@@ -1,387 +1,387 @@
-# DualClip 사용 가이드
+# DualClip User Guide
 
-DualClip은 macOS 메뉴바에서 동작하는 멀티 슬롯 클립보드 매니저입니다. 기존 클립보드(⌘C/⌘V)를 그대로 유지하면서, 2개의 추가 슬롯(B, C)을 단축키로 즉시 사용할 수 있습니다.
-
----
-
-## 목차
-
-1. [설치](#1-설치)
-2. [최초 실행 및 권한 설정](#2-최초-실행-및-권한-설정)
-3. [기본 개념: 3개의 슬롯](#3-기본-개념-3개의-슬롯)
-4. [단축키 사용법](#4-단축키-사용법)
-5. [메뉴바 팝오버](#5-메뉴바-팝오버)
-6. [단축키 커스터마이즈](#6-단축키-커스터마이즈)
-7. [Atomic Paste 동작 원리](#7-atomic-paste-동작-원리)
-8. [보안 및 프라이버시](#8-보안-및-프라이버시)
-9. [문제 해결 (Troubleshooting)](#9-문제-해결-troubleshooting)
-10. [빌드 방법](#10-빌드-방법)
+DualClip is a multi-slot clipboard manager that lives in the macOS menu bar. It keeps your existing clipboard (⌘C/⌘V) untouched while giving you two additional slots (B and C) accessible via customizable keyboard shortcuts.
 
 ---
 
-## 1. 설치
+## Table of Contents
 
-### Xcode를 통한 빌드 설치 (권장)
+1. [Installation](#1-installation)
+2. [First Launch & Permission Setup](#2-first-launch--permission-setup)
+3. [Core Concept: 3 Clipboard Slots](#3-core-concept-3-clipboard-slots)
+4. [Using Keyboard Shortcuts](#4-using-keyboard-shortcuts)
+5. [Menu Bar Popover](#5-menu-bar-popover)
+6. [Customizing Shortcuts](#6-customizing-shortcuts)
+7. [How Atomic Paste Works](#7-how-atomic-paste-works)
+8. [Security & Privacy](#8-security--privacy)
+9. [Troubleshooting](#9-troubleshooting)
+10. [Building from Source](#10-building-from-source)
+
+---
+
+## 1. Installation
+
+### Building with Xcode (Recommended)
 
 ```bash
-# 1. 소스 클론
-git clone https://github.com/dualclip/dualclip.git
-cd dualclip
+# 1. Clone the repository
+git clone https://github.com/RAKKUNN/DualClip.git
+cd DualClip
 
-# 2. Xcode에서 열기
+# 2. Open in Xcode
 open Package.swift
 
-# 3. Xcode 상단 툴바에서:
-#    - Scheme: DualClip 선택
-#    - Destination: My Mac 선택
-#    - ⌘R 으로 빌드 & 실행
+# 3. In the Xcode toolbar:
+#    - Scheme: Select "DualClip"
+#    - Destination: Select "My Mac"
+#    - Press ⌘R to build & run
 ```
 
-### Command Line Tools만으로 빌드
+### Building with Command Line Tools Only
 
-Xcode를 설치하지 않고도 빌드할 수 있습니다 (Command Line Tools 필요):
+You can build without Xcode (requires Swift 5.9+ Command Line Tools):
 
 ```bash
 swift build -c release
-# 바이너리 위치: .build/release/DualClip
+# Binary location: .build/release/DualClip
 ```
 
-> **참고**: CLI 빌드는 `.app` 번들이 아닌 실행 파일입니다. Dock 아이콘이 일시적으로 보일 수 있습니다.
+> **Note**: CLI builds produce an executable, not an `.app` bundle. A Dock icon may briefly appear during launch.
 
 ---
 
-## 2. 최초 실행 및 권한 설정
+## 2. First Launch & Permission Setup
 
-DualClip을 처음 실행하면 **Onboarding 화면**이 나타납니다.
+When you first launch DualClip, an **Onboarding screen** will appear.
 
-### Step 1: Accessibility 권한 부여
+### Step 1: Grant Accessibility Permission
 
-DualClip이 슬롯 B/C의 붙여넣기를 수행하려면 **Accessibility 권한**이 필요합니다. 이 권한은 ⌘V 키 입력을 시뮬레이션하는 데 사용됩니다.
+DualClip requires **Accessibility permission** to perform paste operations for Slots B and C. This permission is used to simulate ⌘V keystrokes via `CGEvent`.
 
-1. Onboarding 화면에서 **"Grant Access"** 버튼 클릭
-2. macOS 시스템 설정이 자동으로 열립니다
-3. **시스템 설정 > 개인 정보 보호 및 보안 > 손쉬운 사용(Accessibility)** 으로 이동
-4. 목록에서 **DualClip**을 찾아 **토글을 켜기(ON)**
+1. Click **"Grant Access"** on the Onboarding screen
+2. macOS System Settings will open automatically
+3. Navigate to **System Settings > Privacy & Security > Accessibility**
+4. Find **DualClip** in the list and **toggle it ON**
 
-> 💡 권한이 승인되면 Onboarding 화면의 상태 표시등이 🔴 빨간색에서 🟢 초록색으로 바뀝니다.
+> The status indicator on the Onboarding screen will change from red to green once the permission is granted.
 
-### Step 2: 단축키 확인
+### Step 2: Review Default Shortcuts
 
-"Next"를 누르면 기본 단축키 안내가 표시됩니다:
+Click "Next" to see the default shortcut assignments:
 
-| 슬롯 | 복사 | 붙여넣기 |
-|------|------|----------|
-| Slot A (시스템) | ⌘C | ⌘V |
+| Slot | Copy | Paste |
+|------|------|-------|
+| Slot A (System) | ⌘C | ⌘V |
 | Slot B | ⌥⌘C | ⌥⌘V |
 | Slot C | ⌃⌘C | ⌃⌘V |
 
-**"Get Started"** 를 클릭하면 메인 화면으로 이동합니다.
+Click **"Get Started"** to proceed to the main interface.
 
 ---
 
-## 3. 기본 개념: 3개의 슬롯
+## 3. Core Concept: 3 Clipboard Slots
 
-DualClip은 3개의 독립적인 클립보드 슬롯을 제공합니다:
+DualClip provides three independent clipboard slots:
 
-### Slot A — 시스템 클립보드
+### Slot A — System Clipboard
 
-- macOS 기본 클립보드와 **자동 동기화**됩니다
-- ⌘C로 복사한 내용이 실시간으로 반영됩니다
-- 직접 제어하지 않아도 됩니다 — 기존 사용 습관 그대로 유지
+- **Automatically syncs** with the macOS system clipboard
+- Anything you copy with ⌘C is reflected here in real time
+- No special action needed — your existing workflow remains unchanged
 
-### Slot B — 보조 슬롯 1
+### Slot B — Auxiliary Slot 1
 
-- 독립적인 저장 공간
-- ⌥⌘C로 복사, ⌥⌘V로 붙여넣기
-- 예: 자주 사용하는 이메일 주소, 코드 스니펫 등을 임시 저장
+- An independent storage space
+- Copy with ⌥⌘C, paste with ⌥⌘V
+- Example: Temporarily store a frequently used email address or code snippet
 
-### Slot C — 보조 슬롯 2
+### Slot C — Auxiliary Slot 2
 
-- 두 번째 독립 저장 공간
-- ⌃⌘C로 복사, ⌃⌘V로 붙여넣기
-- 예: 번역 작업 시 원문과 번역문을 각각 다른 슬롯에 저장
+- A second independent storage space
+- Copy with ⌃⌘C, paste with ⌃⌘V
+- Example: Store source text and translated text in separate slots during translation work
 
-### 사용 시나리오 예시
+### Usage Scenarios
 
-**코드 리팩토링:**
-1. 변수명 `oldName`을 선택 → **⌥⌘C** (Slot B에 저장)
-2. 새 변수명 `newName`을 선택 → **⌃⌘C** (Slot C에 저장)
-3. 다른 파일에서 **⌥⌘V**로 옛 이름 붙여넣기, **⌃⌘V**로 새 이름 붙여넣기
-4. 이 과정에서 **⌘C/⌘V (Slot A)는 그대로** 독립적으로 사용 가능
+**Code Refactoring:**
+1. Select variable name `oldName` → **⌥⌘C** (save to Slot B)
+2. Select new variable name `newName` → **⌃⌘C** (save to Slot C)
+3. In another file, press **⌥⌘V** to paste the old name, **⌃⌘V** to paste the new name
+4. Throughout this process, **⌘C/⌘V (Slot A) remains fully independent**
 
-**번역 작업:**
-1. 영어 원문 선택 → **⌥⌘C** (Slot B에 저장)
-2. 번역기에서 번역 결과 선택 → **⌃⌘C** (Slot C에 저장)
-3. 문서에서 필요한 위치에 **⌥⌘V** 또는 **⌃⌘V**로 각각 붙여넣기
+**Translation Work:**
+1. Select English source text → **⌥⌘C** (save to Slot B)
+2. Select translated result from a translator → **⌃⌘C** (save to Slot C)
+3. Paste each version where needed using **⌥⌘V** or **⌃⌘V**
 
 ---
 
-## 4. 단축키 사용법
+## 4. Using Keyboard Shortcuts
 
-### 슬롯에 복사하기
+### Copying to a Slot
 
-1. 복사하고 싶은 텍스트를 **마우스로 선택** (드래그)
-2. 해당 슬롯의 **복사 단축키** 입력:
+1. **Select the text** you want to copy (drag to highlight)
+2. Press the **copy shortcut** for the desired slot:
    - Slot B: **⌥⌘C** (Option + Command + C)
    - Slot C: **⌃⌘C** (Control + Command + C)
-3. 메뉴바 팝오버에서 슬롯에 텍스트가 저장된 것을 확인 가능
+3. The text is now stored in the slot — verify via the menu bar popover
 
-> 📌 복사 동작은 내부적으로 ⌘C를 시뮬레이션한 후 클립보드 내용을 해당 슬롯에 저장합니다.
+> Internally, the copy action simulates ⌘C and then captures the clipboard content into the target slot.
 
-### 슬롯에서 붙여넣기
+### Pasting from a Slot
 
-1. 텍스트를 넣고 싶은 위치에 **커서를 놓기**
-2. 해당 슬롯의 **붙여넣기 단축키** 입력:
+1. **Place the cursor** where you want to insert text
+2. Press the **paste shortcut** for the desired slot:
    - Slot B: **⌥⌘V** (Option + Command + V)
    - Slot C: **⌃⌘V** (Control + Command + V)
-3. 슬롯에 저장된 텍스트가 붙여넣어집니다
+3. The stored text is pasted at the cursor position
 
-> 📌 붙여넣기 후에도 시스템 클립보드(Slot A)의 내용은 **변경되지 않습니다** (Atomic Paste).
+> After pasting, the system clipboard (Slot A) remains **unchanged** thanks to Atomic Paste.
 
-### 기호 참고
+### Modifier Key Reference
 
-| 기호 | 키 | 키보드 위치 |
-|------|-----|-----------|
-| ⌘ | Command | 스페이스바 양옆 |
-| ⌥ | Option (Alt) | Command 바로 옆 |
-| ⌃ | Control | 키보드 좌측 하단 |
+| Symbol | Key | Location |
+|--------|-----|----------|
+| ⌘ | Command | Both sides of the Space bar |
+| ⌥ | Option (Alt) | Next to the Command key |
+| ⌃ | Control | Bottom-left corner of the keyboard |
 
 ---
 
-## 5. 메뉴바 팝오버
+## 5. Menu Bar Popover
 
-화면 상단 메뉴바의 📋 아이콘을 클릭하면 **팝오버 창**이 열립니다.
+Click the clipboard icon in the menu bar to open the **popover window**.
 
-### 팝오버 구성
+### Popover Layout
 
 ```
 ┌──────────────────────────────┐
-│  DualClip          Clear All │  ← 헤더 (B, C 슬롯 일괄 비우기)
+│  DualClip          Clear All │  ← Header (clears Slots B & C)
 ├──────────────────────────────┤
-│  [A] System clipboard        │  ← Slot A: 현재 시스템 클립보드
-│      "복사된 텍스트 미리보기…"  │
+│  [A] System clipboard        │  ← Slot A: current system clipboard
+│      "Copied text preview…"  │
 │      3 seconds ago            │
 │                               │
-│  [B] Slot B              [✕] │  ← Slot B: 저장된 내용 + 삭제 버튼
-│      "저장된 텍스트 미리보기…"  │
+│  [B] Slot B              [✕] │  ← Slot B: stored content + clear button
+│      "Stored text preview…"  │
 │      1 minute ago             │
 │                               │
 │  [C] Slot C              [✕] │  ← Slot C
 │      (empty)                  │
 ├──────────────────────────────┤
-│  ⚙ Settings    🟢    Quit   │  ← 푸터 (설정, 권한 상태, 종료)
+│  ⚙ Settings    🟢    Quit   │  ← Footer (settings, permission status, quit)
 └──────────────────────────────┘
 ```
 
-### 각 요소 설명
+### Element Descriptions
 
-- **슬롯 뱃지(A/B/C)**: 색상으로 구분 (A=파랑, B=주황, C=보라)
-- **미리보기**: 저장된 텍스트의 처음 40자를 한 줄로 표시
-- **타임스탬프**: 복사된 시간을 상대적으로 표시 (예: "3 seconds ago")
-- **✕ 버튼**: 해당 슬롯의 내용을 삭제 (Slot B, C만 가능)
-- **Clear All**: Slot B와 C를 동시에 비움 (Slot A는 시스템 클립보드이므로 영향 없음)
-- **🟢/🔴 점**: Accessibility 권한 상태 표시. 🔴이면 클릭하여 설정으로 이동 가능
-- **Settings**: 단축키 커스터마이즈 설정 창 열기
-- **Quit**: 앱 종료
+- **Slot Badge (A/B/C)**: Color-coded identifiers (A = blue, B = orange, C = purple)
+- **Preview**: Displays the first 40 characters of stored text in a single line
+- **Timestamp**: Shows when content was copied in relative format (e.g., "3 seconds ago")
+- **✕ Button**: Clears the content of the individual slot (Slots B and C only)
+- **Clear All**: Clears Slots B and C simultaneously (Slot A is unaffected as it mirrors the system clipboard)
+- **Status Dot**: Green = Accessibility granted; Red = not granted (click to open System Settings)
+- **Settings**: Opens the shortcut customization window
+- **Quit**: Terminates the application
 
 ---
 
-## 6. 단축키 커스터마이즈
+## 6. Customizing Shortcuts
 
-기본 단축키가 다른 앱과 충돌하거나 불편한 경우, 자유롭게 변경할 수 있습니다.
+If the default shortcuts conflict with other apps or feel inconvenient, you can change them freely.
 
-### 설정 방법
+### How to Change Shortcuts
 
-1. 메뉴바 팝오버에서 **⚙ Settings** 클릭
-2. **Shortcuts** 탭 선택
-3. 변경하려는 항목의 입력 필드를 클릭
-4. 원하는 **키 조합을 직접 누르기** (예: ⌃⇧C)
-5. 자동으로 저장됨
+1. Click **⚙ Settings** in the menu bar popover
+2. Select the **Shortcuts** tab
+3. Click the input field for the shortcut you want to change
+4. **Press the desired key combination** directly (e.g., ⌃⇧C)
+5. The new shortcut is saved automatically
 
-### 설정 화면 구성
+### Settings Layout
 
 ```
-Shortcuts 탭:
+Shortcuts Tab:
 ┌─────────────────────────────────┐
 │  Slot B                         │
-│  Copy to Slot B:    [⌥⌘C     ] │  ← 클릭 후 새 키 조합 입력
+│  Copy to Slot B:    [⌥⌘C     ] │  ← Click and press new key combo
 │  Paste from Slot B: [⌥⌘V     ] │
 │                                 │
 │  Slot C                         │
 │  Copy to Slot C:    [⌃⌘C     ] │
 │  Paste from Slot C: [⌃⌘V     ] │
 │                                 │
-│  [Reset to Defaults]            │  ← 기본값으로 초기화
+│  [Reset to Defaults]            │  ← Restore default shortcuts
 └─────────────────────────────────┘
 ```
 
-### 단축키 선택 팁
+### Tips for Choosing Shortcuts
 
-- **다른 앱과 충돌하지 않는 조합**을 선택하세요
-- 일반적으로 안전한 수식키 조합:
-  - `⌃⇧` (Control + Shift) + 알파벳
-  - `⌃⌥` (Control + Option) + 알파벳
-  - `⌃⌥⌘` (Control + Option + Command) + 알파벳
-- 피해야 할 조합:
-  - `⌘⇧V` — 대부분 앱에서 "서식 없이 붙여넣기"로 사용
-  - `⌘⇧C` — Chrome DevTools, VS Code 등에서 사용
+- **Choose combinations that don't conflict** with other applications
+- Generally safe modifier combinations:
+  - `⌃⇧` (Control + Shift) + letter
+  - `⌃⌥` (Control + Option) + letter
+  - `⌃⌥⌘` (Control + Option + Command) + letter
+- Combinations to avoid:
+  - `⌘⇧V` — commonly used for "Paste without formatting" in most apps
+  - `⌘⇧C` — used in Chrome DevTools, VS Code, and other developer tools
 
 ---
 
-## 7. Atomic Paste 동작 원리
+## 7. How Atomic Paste Works
 
-DualClip의 핵심 기술인 **Atomic Paste**는 슬롯 B/C에서 붙여넣기할 때 시스템 클립보드를 보존합니다.
+**Atomic Paste** is DualClip's core technology that preserves the system clipboard when pasting from Slots B or C.
 
-### 동작 과정 (⌥⌘V 입력 시)
+### Step-by-Step Process (when ⌥⌘V is pressed)
 
 ```
-[1] 시스템 클립보드 백업
-    현재 ⌘C로 복사해둔 내용을 임시 저장
+[1] Back up the system clipboard
+    Temporarily save the current ⌘C content
 
-[2] 슬롯 데이터로 교체
-    시스템 클립보드를 Slot B 내용으로 덮어쓰기
+[2] Swap in slot data
+    Overwrite the system clipboard with Slot B's content
 
-[3] ⌘V 시뮬레이션
-    대상 앱에 붙여넣기 명령 전달
+[3] Simulate ⌘V
+    Send the paste command to the target application
 
-[4] 150ms 대기
-    대상 앱이 클립보드를 읽을 시간 확보
+[4] Wait 150ms
+    Allow time for the target app to read the clipboard
 
-[5] 시스템 클립보드 복원
-    [1]에서 백업한 원래 내용으로 되돌리기
+[5] Restore the system clipboard
+    Revert to the original content saved in step [1]
 ```
 
-### 왜 이렇게 동작하나요?
+### Why Does It Work This Way?
 
-macOS의 붙여넣기(⌘V)는 항상 **시스템 클립보드(`NSPasteboard.general`)**에서 데이터를 가져옵니다. 따라서 슬롯 B의 내용을 붙여넣으려면 일시적으로 시스템 클립보드를 교체해야 합니다. Atomic Paste는 이 과정을 **150ms 이내에 완료**하고 원래 클립보드를 복원하므로, 사용자는 시스템 클립보드가 변경되었음을 인지하지 못합니다.
-
----
-
-## 8. 보안 및 프라이버시
-
-DualClip은 보안을 최우선으로 설계되었습니다.
-
-### 데이터 저장
-
-| 항목 | 정책 |
-|------|------|
-| 클립보드 데이터 | **RAM에만 존재** — 디스크에 절대 저장하지 않음 |
-| 앱 종료 시 | 모든 슬롯 데이터 즉시 파기 |
-| 설정 데이터 | 단축키 설정과 온보딩 완료 여부만 `UserDefaults`에 저장 |
-
-### 네트워크
-
-- **네트워크 통신 코드가 존재하지 않습니다**
-- 텔레메트리, 분석, 자동 업데이트 서버 연결 없음
-- 소스 코드가 공개되어 있으므로 직접 검증 가능
-
-### 권한
-
-| 권한 | 용도 | 필수 여부 |
-|------|------|-----------|
-| Accessibility | ⌘V/⌘C 키 입력 시뮬레이션 | **필수** — 없으면 Slot B/C 붙여넣기 불가 |
-| 그 외 | 없음 | — |
-
-### 오픈소스
-
-- MIT 라이선스로 공개
-- 모든 소스 코드를 GitHub에서 확인 가능
-- 클립보드 접근 앱은 민감한 데이터를 다루므로, 투명성이 핵심입니다
+macOS paste (⌘V) always reads from the **system clipboard (`NSPasteboard.general`)**. To paste content from Slot B, DualClip must temporarily replace the system clipboard. Atomic Paste completes this entire cycle — backup, swap, paste, restore — **within 150ms**, so the user never notices the clipboard was momentarily changed.
 
 ---
 
-## 9. 문제 해결 (Troubleshooting)
+## 8. Security & Privacy
 
-### ⌥⌘V를 눌러도 아무 반응이 없어요
+DualClip is designed with security as a top priority.
 
-**원인**: Accessibility 권한이 부여되지 않았을 가능성이 높습니다.
+### Data Storage
 
-**해결**:
-1. 메뉴바 팝오버 하단의 상태 점이 🔴인지 확인
-2. 🔴이면 클릭하여 시스템 설정으로 이동
-3. **시스템 설정 > 개인 정보 보호 및 보안 > 손쉬운 사용**
-4. DualClip 토글을 끄고 다시 켜기
-5. 앱 재시작
+| Item | Policy |
+|------|--------|
+| Clipboard data | **Exists in RAM only** — never written to disk |
+| On app quit | All slot data is immediately discarded |
+| Settings data | Only shortcut preferences and onboarding status are stored in `UserDefaults` |
 
-### 단축키가 다른 앱과 충돌해요
+### Network
 
-**해결**:
-1. 메뉴바 팝오버 > **Settings** > **Shortcuts** 탭
-2. 충돌하는 단축키를 클릭
-3. 새로운 키 조합 입력
-4. "Reset to Defaults"로 기본값 복원 가능
+- **No networking code exists in the application**
+- No telemetry, analytics, or auto-update server connections
+- Source code is publicly available for independent verification
 
-### 붙여넣기 시 이전 클립보드 내용이 사라져요
+### Permissions
 
-**원인**: 대상 앱이 클립보드를 읽는 데 150ms보다 오래 걸릴 수 있습니다.
+| Permission | Purpose | Required |
+|------------|---------|----------|
+| Accessibility | Simulate ⌘V/⌘C key events via `CGEvent` | **Required** — Slots B/C paste will not work without it |
+| All others | Not used | — |
 
-**해결**: 현재 버전에서는 복원 지연 시간을 변경할 수 없습니다. 이 문제가 자주 발생하면 GitHub Issue로 제보해주세요.
+### Open Source
 
-### 메뉴바에 아이콘이 안 보여요
-
-**해결**:
-1. 메뉴바 아이콘이 너무 많으면 macOS가 일부를 숨길 수 있습니다
-2. ⌘ 키를 누른 채로 메뉴바 아이콘을 드래그하여 재배치
-3. 앱이 실행 중인지 Activity Monitor에서 "DualClip" 검색
-
-### Slot A에 내용이 표시되지 않아요
-
-**원인**: 이미지나 파일 등 텍스트가 아닌 데이터를 복사한 경우
-
-**설명**: 현재 버전은 **텍스트(String)만 지원**합니다. 이미지, 리치 텍스트, 파일 등은 감지되지 않습니다.
+- Released under the MIT License
+- All source code is available on GitHub for inspection
+- Clipboard apps handle sensitive data — transparency is essential
 
 ---
 
-## 10. 빌드 방법
+## 9. Troubleshooting
 
-### 요구 사항
+### Pressing ⌥⌘V does nothing
 
-- macOS 13.0 (Ventura) 이상
-- Xcode 15+ 또는 Swift 5.9+ Command Line Tools
+**Cause**: Accessibility permission is likely not granted.
 
-### Xcode 빌드
+**Fix**:
+1. Check the status dot at the bottom of the menu bar popover — is it red?
+2. If red, click it to open System Settings
+3. Navigate to **System Settings > Privacy & Security > Accessibility**
+4. Toggle DualClip OFF and then back ON
+5. Restart the app
+
+### Shortcuts conflict with another app
+
+**Fix**:
+1. Open the menu bar popover > **Settings** > **Shortcuts** tab
+2. Click the conflicting shortcut field
+3. Press a new key combination
+4. Use "Reset to Defaults" to restore original shortcuts
+
+### Previous clipboard content disappears after pasting
+
+**Cause**: The target application may take longer than 150ms to read the clipboard.
+
+**Fix**: The current version does not allow adjusting the restore delay. If this occurs frequently, please report it via [GitHub Issues](https://github.com/RAKKUNN/DualClip/issues).
+
+### Menu bar icon is not visible
+
+**Fix**:
+1. If you have many menu bar icons, macOS may hide some — try scrolling or rearranging
+2. Hold ⌘ and drag menu bar icons to rearrange
+3. Check if DualClip is running by searching "DualClip" in Activity Monitor
+
+### Slot A shows no content
+
+**Cause**: You copied non-text data such as an image or file.
+
+**Note**: The current version **supports text (String) only**. Images, rich text, and files are not detected.
+
+---
+
+## 10. Building from Source
+
+### Requirements
+
+- macOS 13.0 (Ventura) or later
+- Xcode 15+ or Swift 5.9+ Command Line Tools
+
+### Xcode Build
 
 ```bash
-git clone https://github.com/dualclip/dualclip.git
-cd dualclip
+git clone https://github.com/RAKKUNN/DualClip.git
+cd DualClip
 open Package.swift
-# Xcode에서 ⌘R로 빌드 & 실행
+# Press ⌘R in Xcode to build & run
 ```
 
-### CLI 빌드
+### CLI Build
 
 ```bash
-git clone https://github.com/dualclip/dualclip.git
-cd dualclip
+git clone https://github.com/RAKKUNN/DualClip.git
+cd DualClip
 swift build -c release
-# 실행
+# Run
 .build/release/DualClip
 ```
 
-### 프로젝트 구조
+### Project Structure
 
 ```
 DualClip/
 ├── App/
-│   ├── DualClipApp.swift        # 앱 진입점 (MenuBarExtra)
-│   └── AppDelegate.swift        # 권한 체크, 라이프사이클
+│   ├── DualClipApp.swift          # App entry point (MenuBarExtra)
+│   └── AppDelegate.swift          # Permission checks, lifecycle
 ├── Models/
-│   ├── ClipboardSlot.swift      # 슬롯 데이터 모델
-│   └── SlotIdentifier.swift     # A/B/C 열거형
+│   ├── ClipboardSlot.swift        # Slot data model
+│   └── SlotIdentifier.swift       # A/B/C enum
 ├── Services/
-│   ├── ClipboardManager.swift   # 클립보드 폴링 (0.5초)
-│   ├── AtomicPasteService.swift # Atomic Paste 구현
-│   └── AccessibilityService.swift # 권한 관리
+│   ├── ClipboardManager.swift     # Clipboard polling (0.5s interval)
+│   ├── AtomicPasteService.swift   # Atomic Paste implementation
+│   └── AccessibilityService.swift # Permission management
 ├── Views/
-│   ├── MenuBarView.swift        # 메뉴바 팝오버
-│   ├── SlotRowView.swift        # 개별 슬롯 행
-│   ├── SettingsView.swift       # 단축키 설정
-│   └── OnboardingView.swift     # 최초 실행 가이드
+│   ├── MenuBarView.swift          # Menu bar popover
+│   ├── SlotRowView.swift          # Individual slot row
+│   ├── SettingsView.swift         # Shortcut settings
+│   └── OnboardingView.swift       # First-run guide
 └── Shortcuts/
-    ├── ShortcutNames.swift      # 단축키 이름 정의
-    └── ShortcutHandler.swift    # 단축키 → 액션 연결
+    ├── ShortcutNames.swift        # Shortcut name definitions
+    └── ShortcutHandler.swift      # Shortcut-to-action binding
 ```
 
 ---
 
-> **DualClip**은 MIT 라이선스로 배포되는 오픈소스 프로젝트입니다. 기여, 버그 제보, 기능 제안은 [GitHub Issues](https://github.com/dualclip/dualclip/issues)를 이용해주세요.
+> **DualClip** is an open-source project distributed under the MIT License. For contributions, bug reports, and feature requests, please use [GitHub Issues](https://github.com/RAKKUNN/DualClip/issues).
