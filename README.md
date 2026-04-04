@@ -44,7 +44,19 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 - macOS 13.0 (Ventura) or later
 - Accessibility permission (required for keystroke simulation)
 
-## Building from Source
+## Installation
+
+### Download (Recommended)
+
+1. Go to the [latest release](https://github.com/RAKKUNN/DualClip/releases/latest)
+2. Download `DualClip-x.x.x-arm64.zip`
+3. Unzip and move `DualClip.app` to `/Applications`
+4. On first launch: **System Settings → Privacy & Security → "Open Anyway"**
+5. Grant Accessibility permission when prompted
+
+> **Note**: This app is not notarized. macOS will show a security warning on first launch — this is expected for open-source apps without an Apple Developer certificate.
+
+### Building from Source
 
 ```bash
 # Clone the repository
@@ -54,11 +66,11 @@ cd DualClip
 # Open in Xcode
 open Package.swift
 
-# Or build from command line (requires Xcode)
-xcodebuild -scheme DualClip -configuration Release
+# Or build from command line
+swift build -c release
 ```
 
-> **Note**: Xcode is required to build the app. The project uses Swift Package Manager for dependency management.
+> **Note**: Building from source requires Xcode or Swift 5.9+ Command Line Tools.
 
 ## Dependencies
 

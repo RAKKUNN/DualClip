@@ -25,7 +25,20 @@ DualClip is a multi-slot clipboard manager that lives in the macOS menu bar. It 
 
 ## 1. Installation
 
-### Building with Xcode (Recommended)
+### Option A: Download from GitHub Releases (Recommended)
+
+1. Go to the [latest release](https://github.com/RAKKUNN/DualClip/releases/latest)
+2. Download `DualClip-x.x.x-arm64.zip`
+3. Unzip the file
+4. Move `DualClip.app` to your `/Applications` folder
+5. Double-click to launch
+
+> **⚠️ First Launch Security Warning**: Since DualClip is not notarized with Apple, macOS will block the app on first launch. To allow it:
+> 1. Open **System Settings → Privacy & Security**
+> 2. Scroll down and click **"Open Anyway"** next to the DualClip message
+> 3. Click **"Open"** in the confirmation dialog
+
+### Option B: Building with Xcode
 
 ```bash
 # 1. Clone the repository
@@ -41,7 +54,7 @@ open Package.swift
 #    - Press ⌘R to build & run
 ```
 
-### Building with Command Line Tools Only
+### Option C: Building with Command Line Tools Only
 
 You can build without Xcode (requires Swift 5.9+ Command Line Tools):
 
