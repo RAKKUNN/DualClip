@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: DualClip
+
+jobs:
+  release:
+    name: Build & Release
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5.9"
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build (Release)
+        run: swift build -c release
+
+      - name: Create .app bundle
+        run: |
+          APP_DIR="${{ runner.temp }}/${{ env.APP_NAME }}.app/Contents"
+          mkdir -p "$APP_DIR/MacOS"
+          mkdir -p "$APP_DIR/Resources"
+
+          # Copy executable
+          cp .build/release/${{ env.APP_NAME }} "$APP_DIR/MacOS/"
+
+          # Copy Info.plist with updated version
+          cp ${{ env.APP_NAME }}/Info.plist "$APP_DIR/"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" "$APP_DIR/Info.plist"
+
+      - name: Create ZIP
+        run: |
+          cd "${{ runner.temp }}"
+          ditto -c -k --keepParent \
+            "${{ env.APP_NAME }}.app" \
+            "${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "${{ env.APP_NAME }} ${{ steps.version.outputs.VERSION }}"
+          generate_release_notes: true
+          body: |
+            ## Installation
+            1. Download `${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip`
+            2. Unzip and move `${{ env.APP_NAME }}.app` to `/Applications`
+            3. On first launch: System Settings → Privacy & Security → "Open Anyway"
+            4. Grant Accessibility permission when prompted
+
+            > ⚠️ This build is not notarized. macOS will show a security warning on first launch.
+          files: |
+            ${{ runner.temp }}/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip
