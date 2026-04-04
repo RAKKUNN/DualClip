@@ -132,6 +132,25 @@ final class ClipboardSlot {
         timestamp = nil
     }
 
+    /// Securely wipe slot data by overwriting backing memory with zeros before releasing.
+    /// Called on app termination to prevent residual sensitive data in RAM.
+    func secureWipe() {
+        if let items = pasteboardItems {
+            for item in items {
+                for type in item.types {
+                    if let data = item.data(forType: type) {
+                        data.withUnsafeBytes { rawBuffer in
+                            guard let baseAddress = rawBuffer.baseAddress else { return }
+                            let mutable = UnsafeMutableRawPointer(mutating: baseAddress)
+                            memset(mutable, 0, rawBuffer.count)
+                        }
+                    }
+                }
+            }
+        }
+        clear()
+    }
+
     // MARK: - Private
 
     private func detectContentType(from pasteboard: NSPasteboard) {
