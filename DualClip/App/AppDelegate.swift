@@ -18,6 +18,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Future: Zeroing-out slot data for security
+        // Securely wipe all clipboard slot data (zero-fill RAM before release)
+        guard let manager = AppState.current?.clipboardManager else { return }
+        manager.slotA.secureWipe()
+        manager.slotB.secureWipe()
+        manager.slotC.secureWipe()
     }
 }

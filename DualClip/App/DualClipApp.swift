@@ -2,11 +2,14 @@ import SwiftUI
 
 /// Holds all app-level state: clipboard manager and shortcut handler.
 final class AppState: ObservableObject {
+    static weak var current: AppState?
+
     let clipboardManager = ClipboardManager()
     private(set) var shortcutHandler: ShortcutHandler!
 
     init() {
         shortcutHandler = ShortcutHandler(clipboardManager: clipboardManager)
+        AppState.current = self
     }
 }
 

@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Carbon.HIToolbox
 
 /// Manages Accessibility and Input Monitoring permission checks and requests.
 final class AccessibilityService: ObservableObject {
@@ -49,6 +50,13 @@ final class AccessibilityService: ObservableObject {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
             NSWorkspace.shared.open(url)
         }
+    }
+
+    /// Check if the system is currently in secure event input mode.
+    /// Returns true when the focused field is a password/secure text field.
+    /// DualClip should skip clipboard operations when this returns true.
+    func isSecureInputActive() -> Bool {
+        return IsSecureEventInputEnabled()
     }
 
     /// Periodically re-check permission status (useful after user grants access).

@@ -39,6 +39,9 @@ final class ShortcutHandler {
     /// Copy the current selection into the specified slot.
     /// Simulates ⌘C, waits briefly, then reads the clipboard into the slot.
     private func handleCopy(to slot: SlotIdentifier) {
+        // Skip when a secure input field (e.g. password) is focused
+        guard !AccessibilityService.shared.isSecureInputActive() else { return }
+
         // Simulate ⌘C to capture the current selection
         AtomicPasteService.shared.simulateCopy()
 
@@ -50,6 +53,9 @@ final class ShortcutHandler {
 
     /// Paste content from the specified slot using atomic paste (all types).
     private func handlePaste(from slot: SlotIdentifier) {
+        // Skip when a secure input field (e.g. password) is focused
+        guard !AccessibilityService.shared.isSecureInputActive() else { return }
+
         AtomicPasteService.shared.paste(from: slot, clipboardManager: clipboardManager)
     }
 }
