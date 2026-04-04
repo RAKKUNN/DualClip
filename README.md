@@ -87,8 +87,8 @@ DualClip/
 
 ## Roadmap
 
-- [ ] Secure input field detection (auto-disable in password fields)
-- [ ] RAM zeroing on app termination
+- [x] Secure input field detection (auto-disable in password fields)
+- [x] RAM zeroing on app termination
 - [x] Image/rich text clipboard support
 - [ ] GitHub Actions CI/CD + Notarization
 - [ ] Homebrew Cask distribution
