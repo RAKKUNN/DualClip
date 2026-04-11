@@ -16,6 +16,7 @@ jobs:
   release:
     name: Build, Sign, Notarize & Release
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,12 +92,14 @@ jobs:
             "${{ runner.temp }}/${{ env.APP_NAME }}.app" \
             "${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip"
 
+          # Submit and wait with timeout (max 15 min)
           xcrun notarytool submit \
             "${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait \
+            --timeout 15m
 
           xcrun stapler staple "${{ runner.temp }}/${{ env.APP_NAME }}.app"
 
