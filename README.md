@@ -51,10 +51,9 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 1. Go to the [latest release](https://github.com/RAKKUNN/DualClip/releases/latest)
 2. Download `DualClip-x.x.x-arm64.zip`
 3. Unzip and move `DualClip.app` to `/Applications`
-4. On first launch: **System Settings → Privacy & Security → "Open Anyway"**
-5. Grant Accessibility permission when prompted
+4. Grant Accessibility permission when prompted
 
-> **Note**: This app is not notarized. macOS will show a security warning on first launch — this is expected for open-source apps without an Apple Developer certificate.
+> **Note**: Starting from v1.1.0, this app is signed and notarized by Apple. No security warnings on launch.
 
 ### Building from Source
 
@@ -102,7 +101,7 @@ DualClip/
 - [x] Secure input field detection (auto-disable in password fields)
 - [x] RAM zeroing on app termination
 - [x] Image/rich text clipboard support
-- [ ] GitHub Actions CI/CD + Notarization
+- [x] GitHub Actions CI/CD + Notarization
 - [ ] Homebrew Cask distribution
 - [ ] Sparkle auto-update framework
 - [ ] VoiceOver accessibility support
