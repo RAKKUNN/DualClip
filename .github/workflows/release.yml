@@ -92,14 +92,36 @@ jobs:
             "${{ runner.temp }}/${{ env.APP_NAME }}.app" \
             "${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip"
 
-          # Submit and wait with timeout (max 15 min)
-          xcrun notarytool submit \
-            "${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_ID_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait \
-            --timeout 15m
+          NOTARIZE_ZIP="${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip"
+          NOTARY_ARGS="--apple-id $APPLE_ID --password $APPLE_ID_PASSWORD --team-id $APPLE_TEAM_ID"
+
+          # Submit for notarization
+          SUBMIT_OUTPUT=$(xcrun notarytool submit "$NOTARIZE_ZIP" $NOTARY_ARGS 2>&1)
+          echo "$SUBMIT_OUTPUT"
+          SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
+          echo "Submission ID: $SUBMISSION_ID"
+
+          # Poll for completion with retries (max 20 min, check every 30s)
+          MAX_ATTEMPTS=40
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            sleep 30
+            STATUS=$(xcrun notarytool info "$SUBMISSION_ID" $NOTARY_ARGS 2>&1 | grep "status:" | awk '{print $2}')
+            echo "Attempt $i/$MAX_ATTEMPTS: status=$STATUS"
+
+            if [ "$STATUS" = "Accepted" ]; then
+              echo "Notarization succeeded!"
+              break
+            elif [ "$STATUS" = "Invalid" ] || [ "$STATUS" = "Rejected" ]; then
+              echo "Notarization failed with status: $STATUS"
+              xcrun notarytool log "$SUBMISSION_ID" $NOTARY_ARGS 2>&1 || true
+              exit 1
+            fi
+          done
+
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "Notarization timed out (status: $STATUS)"
+            exit 1
+          fi
 
           xcrun stapler staple "${{ runner.temp }}/${{ env.APP_NAME }}.app"
 
