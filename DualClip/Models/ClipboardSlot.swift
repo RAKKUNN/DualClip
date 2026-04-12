@@ -142,7 +142,8 @@ final class ClipboardSlot {
                         data.withUnsafeBytes { rawBuffer in
                             guard let baseAddress = rawBuffer.baseAddress else { return }
                             let mutable = UnsafeMutableRawPointer(mutating: baseAddress)
-                            memset(mutable, 0, rawBuffer.count)
+                            // Use volatile-equivalent pattern to prevent dead-store elimination
+                            memset_s(mutable, rawBuffer.count, 0, rawBuffer.count)
                         }
                     }
                 }

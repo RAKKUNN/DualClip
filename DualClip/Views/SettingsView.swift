@@ -65,7 +65,7 @@ struct SettingsView: View {
                 .font(.callout)
                 .foregroundColor(.secondary)
 
-            Text("v1.0.0")
+            Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -77,7 +77,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
 
                 Link("GitHub Repository",
-                     destination: URL(string: "https://github.com/dualclip/dualclip")!)
+                     destination: URL(string: "https://github.com/RAKKUNN/DualClip")!)
                     .font(.caption)
             }
 

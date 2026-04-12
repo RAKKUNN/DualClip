@@ -52,12 +52,14 @@ final class ShortcutHandler {
         AtomicPasteService.shared.simulateCopy()
 
         // Wait for the system to process the copy, then store in slot and restore
+        let manager = clipboardManager
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(copyReadDelayMs)) { [weak self] in
-            guard let self else { return }
-            self.clipboardManager.copyToSlot(slot)
-            // Restore original clipboard so Slot A is not affected
-            self.clipboardManager.restoreSystemClipboard(backup)
-            self.clipboardManager.resumePolling()
+            if let self {
+                self.clipboardManager.copyToSlot(slot)
+            }
+            // Always restore and resume, even if self is deallocated
+            manager.restoreSystemClipboard(backup)
+            manager.resumePolling()
         }
     }
 
