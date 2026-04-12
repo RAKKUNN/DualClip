@@ -67,6 +67,9 @@ jobs:
 
           cp .build/release/${{ env.APP_NAME }} "$APP_DIR/MacOS/"
 
+          # Copy SPM resource bundles (e.g. KeyboardShortcuts)
+          find .build -path "*/release/*.bundle" -maxdepth 3 -exec cp -R {} "$APP_DIR/Resources/" \;
+
           cp ${{ env.APP_NAME }}/Info.plist "$APP_DIR/"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" "$APP_DIR/Info.plist"
 
