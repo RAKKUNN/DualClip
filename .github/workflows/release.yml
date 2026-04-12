@@ -31,7 +31,17 @@ jobs:
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - name: Build (Release)
-        run: swift build -c release
+        run: |
+          # First build to generate SPM resource bundle accessor
+          swift build -c release
+
+          # Patch Bundle.module to use resourceURL (Contents/Resources/) instead of
+          # bundleURL (.app/ root) which codesign rejects as "unsealed contents"
+          find .build -name "resource_bundle_accessor.swift" -path "*/release/*" \
+            -exec sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' {} \;
+
+          # Rebuild with patched accessor
+          swift build -c release
 
       # --- Code Signing ---
       - name: Import signing certificate
@@ -67,15 +77,10 @@ jobs:
 
           cp .build/release/${{ env.APP_NAME }} "$APP_DIR/MacOS/"
 
-          # Copy SPM resource bundles (e.g. KeyboardShortcuts)
-          # Bundle.module looks at Bundle.main.bundleURL (= .app/) first,
-          # so place bundles at the .app root — the path SPM actually checks.
-          APP_ROOT="${{ runner.temp }}/${{ env.APP_NAME }}.app"
-          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_ROOT/" \;
-
-          # Verify bundles were copied
-          echo "=== .app root ==="
-          ls -la "$APP_ROOT/" || true
+          # Copy SPM resource bundles into Contents/Resources/
+          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_DIR/Resources/" \;
+          echo "=== Resources ==="
+          ls -la "$APP_DIR/Resources/" || true
 
           cp ${{ env.APP_NAME }}/Info.plist "$APP_DIR/"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" "$APP_DIR/Info.plist"
