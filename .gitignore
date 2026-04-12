@@ -29,3 +29,6 @@ build/
 .idea/
 *.swp
 *~
+
+# LLM harness
+.windsurf/
