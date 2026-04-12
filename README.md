@@ -23,6 +23,12 @@
 - **Privacy First**: All data lives in RAM only — nothing is persisted to disk
 - **Zero Network Access**: No telemetry, no analytics, no internet communication
 
+## Demo
+
+<p align="center">
+  <img src="test_dualclip.gif" alt="DualClip Demo" width="600">
+</p>
+
 ## Default Shortcuts
 
 | Action | Shortcut |
