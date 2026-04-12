@@ -68,6 +68,7 @@ final class ClipboardManager: ObservableObject {
     /// Resume polling and resync Slot A with current clipboard.
     func resumePolling() {
         isPollingPaused = false
+        ignoreChangeCount = 0
         lastChangeCount = NSPasteboard.general.changeCount
         syncSlotA()
     }
