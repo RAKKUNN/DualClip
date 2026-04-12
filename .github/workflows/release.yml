@@ -68,16 +68,14 @@ jobs:
           cp .build/release/${{ env.APP_NAME }} "$APP_DIR/MacOS/"
 
           # Copy SPM resource bundles (e.g. KeyboardShortcuts)
-          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_DIR/Resources/" \;
-
-          # Also place bundles next to the executable (fallback search path)
-          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_DIR/MacOS/" \;
+          # Bundle.module looks at Bundle.main.bundleURL (= .app/) first,
+          # so place bundles at the .app root — the path SPM actually checks.
+          APP_ROOT="${{ runner.temp }}/${{ env.APP_NAME }}.app"
+          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_ROOT/" \;
 
           # Verify bundles were copied
-          echo "=== Resources ==="
-          ls -la "$APP_DIR/Resources/" || true
-          echo "=== MacOS ==="
-          ls -la "$APP_DIR/MacOS/" || true
+          echo "=== .app root ==="
+          ls -la "$APP_ROOT/" || true
 
           cp ${{ env.APP_NAME }}/Info.plist "$APP_DIR/"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" "$APP_DIR/Info.plist"
