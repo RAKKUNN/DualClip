@@ -32,23 +32,31 @@ jobs:
 
       - name: Build (Release)
         run: |
-          # First build to generate SPM resource bundle accessor
-          swift build -c release
+          # Build with verbose output to capture compiler/linker commands
+          swift build -c release -v 2>&1 | tee /tmp/build_log.txt | tail -3
 
           # Patch Bundle.module to use resourceURL (Contents/Resources/) instead of
           # bundleURL (.app/ root) which codesign rejects as "unsealed contents"
           ACCESSOR=$(find .build -name "resource_bundle_accessor.swift" -path "*/release/*" | head -1)
-          echo "=== BEFORE PATCH ==="
-          cat "$ACCESSOR"
+          echo "--- Patching $ACCESSOR ---"
           sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' "$ACCESSOR"
-          echo "=== AFTER PATCH ==="
-          cat "$ACCESSOR"
+          grep "mainPath" "$ACCESSOR"
 
-          # Rebuild with patched accessor
-          swift build -c release
+          # Recompile entire KeyboardShortcuts module with patched accessor
+          # (SPM uses whole-module-optimization, so all files must be compiled together)
+          grep "resource_bundle_accessor.swift" /tmp/build_log.txt \
+            | grep "swift-frontend" | head -1 \
+            | sed 's/-supplementary-output-file-map [^ ]*//' \
+            > /tmp/recompile.sh
+          bash /tmp/recompile.sh
 
-          echo "=== AFTER REBUILD ==="
-          cat "$ACCESSOR"
+          # Re-link DualClip executable
+          grep -E -- "-o .*/release/${{ env.APP_NAME }}$" /tmp/build_log.txt \
+            | head -1 > /tmp/relink.sh
+          bash /tmp/relink.sh
+
+          # Verify patch is in the final binary
+          strings .build/*/release/${{ env.APP_NAME }} | grep "resourceURL" && echo "✓ Patch verified in binary"
 
       # --- Code Signing ---
       - name: Import signing certificate
