@@ -9,6 +9,7 @@
   Unlike history-based clipboard managers, DualClip gives you instant access to dedicated clipboard slots via customizable keyboard shortcuts.
 </p>
 
+![CI](https://github.com/RAKKUNN/DualClip/actions/workflows/ci.yml/badge.svg)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
