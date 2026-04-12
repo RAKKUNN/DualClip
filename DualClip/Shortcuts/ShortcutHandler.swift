@@ -45,13 +45,19 @@ final class ShortcutHandler {
         // Pause polling to prevent Slot A from racing with this copy
         clipboardManager.pausePolling()
 
+        // Backup current system clipboard so Slot A stays unchanged
+        let backup = clipboardManager.backupSystemClipboard()
+
         // Simulate ⌘C to capture the current selection
         AtomicPasteService.shared.simulateCopy()
 
-        // Wait for the system to process the copy, then store in slot
+        // Wait for the system to process the copy, then store in slot and restore
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(copyReadDelayMs)) { [weak self] in
-            self?.clipboardManager.copyToSlot(slot)
-            self?.clipboardManager.resumePolling()
+            guard let self else { return }
+            self.clipboardManager.copyToSlot(slot)
+            // Restore original clipboard so Slot A is not affected
+            self.clipboardManager.restoreSystemClipboard(backup)
+            self.clipboardManager.resumePolling()
         }
     }
 
