@@ -105,7 +105,7 @@ jobs:
           MAX_ATTEMPTS=40
           for i in $(seq 1 $MAX_ATTEMPTS); do
             sleep 30
-            STATUS=$(xcrun notarytool info "$SUBMISSION_ID" $NOTARY_ARGS 2>&1 | grep "status:" | awk '{print $2}')
+            STATUS=$(xcrun notarytool info "$SUBMISSION_ID" $NOTARY_ARGS 2>&1 | grep "status:" | sed 's/.*status: //')
             echo "Attempt $i/$MAX_ATTEMPTS: status=$STATUS"
 
             if [ "$STATUS" = "Accepted" ]; then
