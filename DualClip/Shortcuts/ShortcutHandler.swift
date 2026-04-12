@@ -42,12 +42,16 @@ final class ShortcutHandler {
         // Skip when a secure input field (e.g. password) is focused
         guard !AccessibilityService.shared.isSecureInputActive() else { return }
 
+        // Pause polling to prevent Slot A from racing with this copy
+        clipboardManager.pausePolling()
+
         // Simulate ⌘C to capture the current selection
         AtomicPasteService.shared.simulateCopy()
 
         // Wait for the system to process the copy, then store in slot
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(copyReadDelayMs)) { [weak self] in
             self?.clipboardManager.copyToSlot(slot)
+            self?.clipboardManager.resumePolling()
         }
     }
 

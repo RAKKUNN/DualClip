@@ -12,8 +12,11 @@ final class ClipboardManager: ObservableObject {
     private var lastChangeCount: Int
     private var pollingTimer: DispatchSourceTimer?
 
-    /// Flag to temporarily ignore clipboard changes caused by our own writes.
-    private var ignoreNextChange = false
+    /// Counter to ignore N clipboard changes caused by our own writes.
+    private var ignoreChangeCount = 0
+
+    /// When true, polling is suspended (used during copy/paste operations).
+    private(set) var isPollingPaused = false
 
     init() {
         lastChangeCount = NSPasteboard.general.changeCount
@@ -47,11 +50,25 @@ final class ClipboardManager: ObservableObject {
         guard currentCount != lastChangeCount else { return }
         lastChangeCount = currentCount
 
-        if ignoreNextChange {
-            ignoreNextChange = false
+        if ignoreChangeCount > 0 {
+            ignoreChangeCount -= 1
             return
         }
 
+        if isPollingPaused { return }
+
+        syncSlotA()
+    }
+
+    /// Temporarily pause polling during multi-step clipboard operations.
+    func pausePolling() {
+        isPollingPaused = true
+    }
+
+    /// Resume polling and resync Slot A with current clipboard.
+    func resumePolling() {
+        isPollingPaused = false
+        lastChangeCount = NSPasteboard.general.changeCount
         syncSlotA()
     }
 
@@ -93,7 +110,7 @@ final class ClipboardManager: ObservableObject {
 
     /// Write a slot's full content to the system clipboard.
     func writeSlotToSystemClipboard(_ identifier: SlotIdentifier) {
-        ignoreNextChange = true
+        ignoreChangeCount += 1
         slot(for: identifier).write(to: NSPasteboard.general)
         lastChangeCount = NSPasteboard.general.changeCount
     }
@@ -108,7 +125,7 @@ final class ClipboardManager: ObservableObject {
     /// Restore previously backed-up clipboard contents.
     func restoreSystemClipboard(_ backup: ClipboardSlot) {
         guard !backup.isEmpty else { return }
-        ignoreNextChange = true
+        ignoreChangeCount += 1
         backup.write(to: NSPasteboard.general)
         lastChangeCount = NSPasteboard.general.changeCount
     }

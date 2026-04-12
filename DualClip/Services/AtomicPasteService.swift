@@ -23,6 +23,9 @@ final class AtomicPasteService {
     func paste(from slot: SlotIdentifier, clipboardManager: ClipboardManager) {
         guard clipboardManager.hasContent(for: slot) else { return }
 
+        // Pause polling for the entire atomic operation
+        clipboardManager.pausePolling()
+
         // 1. Backup current system clipboard (all types)
         let backup = clipboardManager.backupSystemClipboard()
 
@@ -32,9 +35,10 @@ final class AtomicPasteService {
         // 3. Simulate ⌘V keystroke
         simulatePaste()
 
-        // 4. Restore original clipboard after delay
+        // 4. Restore original clipboard after delay, then resume polling
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(restoreDelayMs)) {
             clipboardManager.restoreSystemClipboard(backup)
+            clipboardManager.resumePolling()
         }
     }
 
