@@ -37,11 +37,18 @@ jobs:
 
           # Patch Bundle.module to use resourceURL (Contents/Resources/) instead of
           # bundleURL (.app/ root) which codesign rejects as "unsealed contents"
-          find .build -name "resource_bundle_accessor.swift" -path "*/release/*" \
-            -exec sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' {} \;
+          ACCESSOR=$(find .build -name "resource_bundle_accessor.swift" -path "*/release/*" | head -1)
+          echo "=== BEFORE PATCH ==="
+          cat "$ACCESSOR"
+          sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' "$ACCESSOR"
+          echo "=== AFTER PATCH ==="
+          cat "$ACCESSOR"
 
           # Rebuild with patched accessor
           swift build -c release
+
+          echo "=== AFTER REBUILD ==="
+          cat "$ACCESSOR"
 
       # --- Code Signing ---
       - name: Import signing certificate
