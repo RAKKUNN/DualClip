@@ -1,12 +1,19 @@
 import SwiftUI
 import KeyboardShortcuts
+import ServiceManagement
 
 /// Settings view for customizing keyboard shortcuts.
 struct SettingsView: View {
     @EnvironmentObject var clipboardManager: ClipboardManager
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         TabView {
+            generalTab
+                .tabItem {
+                    Label("General", systemImage: "gear")
+                }
+
             shortcutsTab
                 .tabItem {
                     Label("Shortcuts", systemImage: "keyboard")
@@ -37,6 +44,34 @@ struct SettingsView: View {
             return version
         }
         return "dev"
+    }
+
+    // MARK: - General Tab
+
+    private var generalTab: some View {
+        Form {
+            Section {
+                Toggle("Launch at Login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { newValue in
+                        do {
+                            if newValue {
+                                try SMAppService.mainApp.register()
+                            } else {
+                                try SMAppService.mainApp.unregister()
+                            }
+                        } catch {
+                            // Revert on failure
+                            launchAtLogin = SMAppService.mainApp.status == .enabled
+                        }
+                    }
+
+                Text("Automatically start DualClip when you log in.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
     }
 
     // MARK: - Shortcuts Tab
