@@ -92,30 +92,7 @@ struct MenuBarView: View {
     }
 
     private func openSettings() {
-        // Temporarily become a regular app so the Settings window gets proper focus
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-
-        if #available(macOS 14.0, *) {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } else {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-        }
-
-        // Watch for Settings window close to revert to menu-bar-only mode
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: nil,
-            queue: .main
-        ) { notification in
-            guard let window = notification.object as? NSWindow,
-                  window.title.contains("Settings") || window.title.contains("Preferences") else { return }
-            NotificationCenter.default.removeObserver(self, name: NSWindow.willCloseNotification, object: nil)
-            // Delay to let the window fully close before switching policy
-            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(200)) {
-                NSApp.setActivationPolicy(.accessory)
-            }
-        }
+        SettingsWindowManager.shared.open(with: clipboardManager)
     }
 
     private func shortcutHint(copy: KeyboardShortcuts.Name, paste: KeyboardShortcuts.Name) -> String {

@@ -32,10 +32,5 @@ struct DualClipApp: App {
             Image(systemName: "doc.on.clipboard")
         }
         .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
-                .environmentObject(appState.clipboardManager)
-        }
     }
 }
