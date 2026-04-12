@@ -46,30 +46,17 @@ struct MenuBarView: View {
 
             // Footer
             HStack {
-                if #available(macOS 14.0, *) {
-                    SettingsLink {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gear")
-                            Text("Settings")
-                        }
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                Button {
+                    openSettings()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "gear")
+                        Text("Settings")
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    Button {
-                        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-                        NSApp.activate(ignoringOtherApps: true)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gear")
-                            Text("Settings")
-                        }
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
@@ -102,6 +89,15 @@ struct MenuBarView: View {
             .padding(.vertical, 8)
         }
         .frame(width: 280)
+    }
+
+    private func openSettings() {
+        NSApp.activate(ignoringOtherApps: true)
+        if #available(macOS 14.0, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } else {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
     }
 
     private func shortcutHint(copy: KeyboardShortcuts.Name, paste: KeyboardShortcuts.Name) -> String {
