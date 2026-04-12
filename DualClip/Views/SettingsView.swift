@@ -20,6 +20,25 @@ struct SettingsView: View {
         .frame(width: 420, height: 320)
     }
 
+    /// Resolve app version: Bundle (release .app) → source Info.plist (dev swift run)
+    private static var appVersion: String {
+        // 1. Try Bundle.main (works in .app bundles)
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return version
+        }
+        // 2. Fallback: read from source Info.plist (works with swift run)
+        if let plistPath = Bundle.main.executableURL?
+            .deletingLastPathComponent() // .build/debug/
+            .deletingLastPathComponent() // .build/
+            .deletingLastPathComponent() // project root
+            .appendingPathComponent("DualClip/Info.plist"),
+           let dict = NSDictionary(contentsOf: plistPath),
+           let version = dict["CFBundleShortVersionString"] as? String {
+            return version
+        }
+        return "dev"
+    }
+
     // MARK: - Shortcuts Tab
 
     private var shortcutsTab: some View {
@@ -65,7 +84,7 @@ struct SettingsView: View {
                 .font(.callout)
                 .foregroundColor(.secondary)
 
-            Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
+            Text("v\(Self.appVersion)")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
