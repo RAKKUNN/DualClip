@@ -170,6 +170,13 @@ jobs:
           generate_release_notes: true
           body: |
             ## Installation
+
+            ### Homebrew (recommended)
+            ```
+            brew install RAKKUNN/tap/dualclip
+            ```
+
+            ### Manual
             1. Download `${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip`
             2. Unzip and move `${{ env.APP_NAME }}.app` to `/Applications`
             3. Grant Accessibility permission when prompted
@@ -177,3 +184,29 @@ jobs:
             ✅ This build is signed and notarized by Apple.
           files: |
             ${{ runner.temp }}/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip
+
+      # --- Homebrew Tap ---
+      - name: Update Homebrew Cask
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          ZIP_URL="https://github.com/RAKKUNN/DualClip/releases/download/v${VERSION}/DualClip-${VERSION}-arm64.zip"
+
+          # Download the release ZIP and compute SHA256
+          curl -sL "$ZIP_URL" -o /tmp/dualclip.zip
+          SHA256=$(shasum -a 256 /tmp/dualclip.zip | awk '{print $1}')
+          echo "SHA256: $SHA256"
+
+          # Clone the tap repo, update formula, push
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/RAKKUNN/homebrew-tap.git" /tmp/homebrew-tap
+          cd /tmp/homebrew-tap
+
+          sed -i '' "s/version \".*\"/version \"${VERSION}\"/" Casks/dualclip.rb
+          sed -i '' "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Casks/dualclip.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/dualclip.rb
+          git commit -m "Bump dualclip to ${VERSION}" || echo "No changes"
+          git push

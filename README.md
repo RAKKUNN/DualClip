@@ -53,7 +53,13 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 
 ## Installation
 
-### Download (Recommended)
+### Homebrew (Recommended)
+
+```bash
+brew install RAKKUNN/tap/dualclip
+```
+
+### Manual Download
 
 1. Go to the [latest release](https://github.com/RAKKUNN/DualClip/releases/latest)
 2. Download `DualClip-x.x.x-arm64.zip`
@@ -109,7 +115,7 @@ DualClip/
 - [x] RAM zeroing on app termination
 - [x] Image/rich text clipboard support
 - [x] GitHub Actions CI/CD + Notarization
-- [ ] Homebrew Cask distribution
+- [x] Homebrew Cask distribution
 - [ ] Sparkle auto-update framework
 - [ ] VoiceOver accessibility support
 
