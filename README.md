@@ -29,6 +29,10 @@
   <img src="test_dualclip.gif" alt="DualClip Demo" width="600">
 </p>
 
+<p align="center">
+  <img src="test_dualclip_image.gif" alt="DualClip Image Support Demo" width="600">
+</p>
+
 ## Default Shortcuts
 
 | Action | Shortcut |
