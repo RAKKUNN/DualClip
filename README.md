@@ -5,6 +5,10 @@
 <h1 align="center">DualClip</h1>
 
 <p align="center">
+  <b>English</b> · <a href="README-ko.md">한국어</a> · <a href="README-ja.md">日本語</a> · <a href="README-zh.md">中文</a>
+</p>
+
+<p align="center">
   A lightweight macOS menu bar app that provides <b>multi-slot clipboard management</b>.<br>
   Unlike history-based clipboard managers, DualClip gives you instant access to dedicated clipboard slots via customizable keyboard shortcuts.
 </p>
