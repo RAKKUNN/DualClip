@@ -11,6 +11,7 @@
 
 ![CI](https://github.com/RAKKUNN/DualClip/actions/workflows/ci.yml/badge.svg)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
+![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-required-black?logo=apple)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
@@ -53,6 +54,7 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 ## Requirements
 
 - macOS 13.0 (Ventura) or later
+- **Apple Silicon Mac (M1/M2/M3/M4)** — the pre-built release is `arm64` only and does not run on Intel Macs
 - Accessibility permission (required for keystroke simulation)
 
 ## Installation
