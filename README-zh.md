@@ -137,6 +137,14 @@ DualClip/
 - [ ] Sparkle 自动更新框架
 - [ ] VoiceOver 无障碍支持
 
+## 赞助
+
+如果 DualClip 对您有用，请考虑赞助开发：
+
+<a href="https://github.com/sponsors/RAKKUNN">
+  <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github" alt="Sponsor RAKKUNN"/>
+</a>
+
 ## 贡献
 
 欢迎贡献!请先开 issue 讨论你想要做的更改。

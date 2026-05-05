@@ -63,6 +63,7 @@ const App = () => {
       <Compare/>
       <Privacy/>
       <Install/>
+      <Sponsor/>
       <Footer/>
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('tweaks') && (
         <DualClipTweaks tweaks={tweaks} setTweak={setTweak}/>

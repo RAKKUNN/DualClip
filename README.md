@@ -137,6 +137,14 @@ DualClip/
 - [ ] Sparkle auto-update framework
 - [ ] VoiceOver accessibility support
 
+## Sponsor
+
+If you find DualClip useful, consider supporting development:
+
+<a href="https://github.com/sponsors/RAKKUNN">
+  <img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github" alt="Sponsor RAKKUNN"/>
+</a>
+
 ## Contributing
 
 Contributions are welcome! Please open an issue first to discuss what you'd like to change.

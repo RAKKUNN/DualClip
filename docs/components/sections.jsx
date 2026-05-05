@@ -341,6 +341,35 @@ const Install = () => (
   </section>
 );
 
+const Sponsor = () => (
+  <section id="sponsor" className="section-sponsor" data-screen-label="Sponsor">
+    <div className="container-narrow sponsor-inner">
+      <div className="section-head sponsor-head">
+        <div className="eyebrow"><span className="dot"/> Support</div>
+        <h2>Like DualClip? <span className="muted">Consider sponsoring.</span></h2>
+      </div>
+      <p className="lede sponsor-lede">
+        DualClip is free, open source, and built by one person. If it saves you time,
+        a sponsorship helps keep development going.
+      </p>
+      <div className="sponsor-card card">
+        <iframe
+          src="https://github.com/sponsors/RAKKUNN/card"
+          title="Sponsor RAKKUNN"
+          height="225"
+          width="600"
+          style={{border: 0, maxWidth: '100%'}}
+        />
+      </div>
+      <div className="sponsor-btn">
+        <a className="btn btn-primary" href="https://github.com/sponsors/RAKKUNN" target="_blank" rel="noreferrer">
+          <Icon.Heart size={14}/> Sponsor on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+);
+
 const Footer = () => (
   <footer className="footer" data-screen-label="Footer">
     <div className="container footer-inner">
@@ -362,4 +391,4 @@ const Footer = () => (
   </footer>
 );
 
-Object.assign(window, { Insight, HowItWorks, HowStage, Features, Demo, Compare, Privacy, Install, Footer });
+Object.assign(window, { Insight, HowItWorks, HowStage, Features, Demo, Compare, Privacy, Install, Sponsor, Footer });
