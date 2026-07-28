@@ -10,6 +10,21 @@ struct SettingsView: View {
     @AppStorage(AtomicPasteService.restoreDelayDefaultsKey)
     private var pasteRestoreDelayMs = AtomicPasteService.defaultRestoreDelayMs
 
+    /// Slider bounds, precomputed outside the view body. A `...` range built
+    /// inline there both defeated the type-checker and — split across lines —
+    /// didn't even parse: Swift does not allow a binary operator to start a line.
+    private static let restoreDelayRange: ClosedRange<Double> = {
+        let range = AtomicPasteService.restoreDelayRangeMs
+        return Double(range.lowerBound)...Double(range.upperBound)
+    }()
+
+    private var restoreDelayBinding: Binding<Double> {
+        Binding(
+            get: { Double(pasteRestoreDelayMs) },
+            set: { pasteRestoreDelayMs = Int($0) }
+        )
+    }
+
     var body: some View {
         TabView {
             generalTab
@@ -74,15 +89,7 @@ struct SettingsView: View {
             }
 
             Section("Paste Timing") {
-                Slider(
-                    value: Binding(
-                        get: { Double(pasteRestoreDelayMs) },
-                        set: { pasteRestoreDelayMs = Int($0) }
-                    ),
-                    in: Double(AtomicPasteService.restoreDelayRangeMs.lowerBound)
-                        ...Double(AtomicPasteService.restoreDelayRangeMs.upperBound),
-                    step: 50
-                ) {
+                Slider(value: restoreDelayBinding, in: Self.restoreDelayRange, step: 50) {
                     Text("Restore delay: \(pasteRestoreDelayMs) ms")
                 }
 
