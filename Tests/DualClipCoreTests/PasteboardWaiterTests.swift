@@ -83,15 +83,17 @@ final class PasteboardWaiterTests: XCTestCase {
         let baseline = pasteboard.changeCount
         write("after")
 
-        let expectation = expectation(description: "completion")
-        expectation.expectedFulfillmentCount = 1
-        expectation.assertForOverFulfill = true
+        // Not named `expectation`: that would shadow XCTest's
+        // `expectation(description:)` and break the second call below.
+        let completed = expectation(description: "completion")
+        completed.expectedFulfillmentCount = 1
+        completed.assertForOverFulfill = true
 
         PasteboardWaiter.waitForChange(on: pasteboard, from: baseline, timeout: 0.3) { _ in
-            expectation.fulfill()
+            completed.fulfill()
         }
 
-        wait(for: [expectation], timeout: 1.0)
+        wait(for: [completed], timeout: 1.0)
         // Give any stray reschedule a chance to fire and over-fulfil.
         let settle = expectation(description: "settle")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { settle.fulfill() }
