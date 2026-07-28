@@ -23,7 +23,7 @@
 
 ![CI](https://github.com/RAKKUNN/DualClip/actions/workflows/ci.yml/badge.svg)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-required-black?logo=apple)
+![Universal](https://img.shields.io/badge/Universal-arm64%20%2B%20x86__64-black?logo=apple)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
@@ -66,7 +66,7 @@
 ## 요구 사항
 
 - macOS 13.0 (Ventura) 이상
-- **Apple Silicon Mac (M1/M2/M3/M4)** — 사전 빌드된 릴리스는 `arm64` 전용이며 Intel Mac에서는 실행되지 않습니다
+- Intel 또는 Apple Silicon Mac — 사전 빌드된 릴리스는 유니버설 바이너리(`arm64` + `x86_64`)입니다
 - 손쉬운 사용 권한 (키 입력 시뮬레이션에 필요)
 
 ## 설치
@@ -80,7 +80,7 @@ brew install RAKKUNN/tap/dualclip
 ### 수동 다운로드
 
 1. [최신 릴리스](https://github.com/RAKKUNN/DualClip/releases/latest)로 이동
-2. `DualClip-x.x.x-arm64.zip` 다운로드
+2. `DualClip-x.x.x-universal.zip` 다운로드
 3. 압축을 풀고 `DualClip.app`을 `/Applications`로 이동
 4. 안내가 표시되면 손쉬운 사용 권한 부여
 

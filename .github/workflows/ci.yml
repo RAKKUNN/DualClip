@@ -29,5 +29,11 @@ jobs:
       - name: Build (Debug)
         run: swift build -c debug
 
-      - name: Build (Release)
-        run: swift build -c release
+      - name: Build (Release, arm64)
+        run: swift build -c release --arch arm64
+
+      # Cross-compiled on the Apple Silicon runner. This only proves the x86_64
+      # slice compiles and links — it cannot be executed here (no guaranteed
+      # Rosetta), so runtime behaviour on Intel still needs manual verification.
+      - name: Build (Release, x86_64)
+        run: swift build -c release --arch x86_64

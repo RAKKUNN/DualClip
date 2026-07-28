@@ -23,7 +23,7 @@
 
 ![CI](https://github.com/RAKKUNN/DualClip/actions/workflows/ci.yml/badge.svg)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-required-black?logo=apple)
+![Universal](https://img.shields.io/badge/Universal-arm64%20%2B%20x86__64-black?logo=apple)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
@@ -66,7 +66,7 @@
 ## 要件
 
 - macOS 13.0 (Ventura) 以降
-- **Apple Silicon Mac (M1/M2/M3/M4)** — 事前ビルドされたリリースは `arm64` のみで、Intel Mac では動作しません
+- Intel または Apple Silicon Mac — 事前ビルドされたリリースはユニバーサルバイナリ(`arm64` + `x86_64`)です
 - アクセシビリティ権限 (キーストロークシミュレーションに必要)
 
 ## インストール
@@ -80,7 +80,7 @@ brew install RAKKUNN/tap/dualclip
 ### 手動ダウンロード
 
 1. [最新リリース](https://github.com/RAKKUNN/DualClip/releases/latest)に移動
-2. `DualClip-x.x.x-arm64.zip` をダウンロード
+2. `DualClip-x.x.x-universal.zip` をダウンロード
 3. 解凍して `DualClip.app` を `/Applications` に移動
 4. 求められたらアクセシビリティ権限を付与
 

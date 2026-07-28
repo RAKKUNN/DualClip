@@ -101,7 +101,7 @@ const Hero = ({ headlineVariant = 'zero-history', showShortcuts = true }) => {
             <span className="meta-dot"/>
             <span>macOS 13+</span>
             <span className="meta-dot"/>
-            <span>Apple Silicon</span>
+            <span>Universal binary</span>
           </div>
         </div>
 

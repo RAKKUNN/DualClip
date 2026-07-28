@@ -23,7 +23,7 @@
 
 ![CI](https://github.com/RAKKUNN/DualClip/actions/workflows/ci.yml/badge.svg)
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-required-black?logo=apple)
+![Universal](https://img.shields.io/badge/Universal-arm64%20%2B%20x86__64-black?logo=apple)
 ![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
@@ -66,7 +66,7 @@
 ## 系统要求
 
 - macOS 13.0 (Ventura) 或更高版本
-- **Apple Silicon Mac (M1/M2/M3/M4)** — 预构建版本仅支持 `arm64`,无法在 Intel Mac 上运行
+- Intel 或 Apple Silicon Mac — 预构建版本为通用二进制文件(`arm64` + `x86_64`)
 - 辅助功能权限 (用于按键模拟)
 
 ## 安装
@@ -80,7 +80,7 @@ brew install RAKKUNN/tap/dualclip
 ### 手动下载
 
 1. 前往[最新版本](https://github.com/RAKKUNN/DualClip/releases/latest)
-2. 下载 `DualClip-x.x.x-arm64.zip`
+2. 下载 `DualClip-x.x.x-universal.zip`
 3. 解压并将 `DualClip.app` 移到 `/Applications`
 4. 出现提示时授予辅助功能权限
 

@@ -16,7 +16,8 @@ jobs:
   release:
     name: Build, Sign, Notarize & Release
     runs-on: macos-14
-    timeout-minutes: 30
+    # Two-arch build adds ~1 build cycle on top of the ≤20 min notarization poll
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,33 +31,67 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Build (Release)
+      - name: Build (Release, universal)
         run: |
-          # Build with verbose output to capture compiler/linker commands
-          swift build -c release -v 2>&1 | tee /tmp/build_log.txt | tail -3
+          set -euo pipefail
+          APP_NAME="${{ env.APP_NAME }}"
+          SLICES=()
 
-          # Patch Bundle.module to use resourceURL (Contents/Resources/) instead of
-          # bundleURL (.app/ root) which codesign rejects as "unsealed contents"
-          ACCESSOR=$(find .build -name "resource_bundle_accessor.swift" -path "*/release/*" | head -1)
-          echo "--- Patching $ACCESSOR ---"
-          sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' "$ACCESSOR"
-          grep "mainPath" "$ACCESSOR"
+          # Build each architecture separately. The Bundle.module patch below rewrites
+          # generated sources and re-links by hand, so it must run once per slice —
+          # a single `--arch arm64 --arch x86_64` build would leave one slice unpatched.
+          for ARCH in arm64 x86_64; do
+            echo "::group::Build $ARCH"
 
-          # Recompile entire KeyboardShortcuts module with patched accessor
-          # (SPM uses whole-module-optimization, so all files must be compiled together)
-          grep "resource_bundle_accessor.swift" /tmp/build_log.txt \
-            | grep "swift-frontend" | head -1 \
-            | sed 's/-supplementary-output-file-map [^ ]*//' \
-            > /tmp/recompile.sh
-          bash /tmp/recompile.sh
+            swift build -c release --arch "$ARCH" -v 2>&1 | tee "/tmp/build_$ARCH.log" | tail -3
 
-          # Re-link DualClip executable
-          grep -E -- "-o .*/release/${{ env.APP_NAME }}$" /tmp/build_log.txt \
-            | head -1 > /tmp/relink.sh
-          bash /tmp/relink.sh
+            # Resolve the per-arch bin dir instead of hardcoding .build/release —
+            # with --arch, SPM writes to a triple-specific directory.
+            BIN=$(swift build -c release --arch "$ARCH" --show-bin-path)
+            echo "bin path: $BIN"
 
-          # Verify patch is in the final binary
-          strings .build/*/release/${{ env.APP_NAME }} | grep "resourceURL" && echo "✓ Patch verified in binary"
+            # Patch Bundle.module to use resourceURL (Contents/Resources/) instead of
+            # bundleURL (.app/ root) which codesign rejects as "unsealed contents"
+            ACCESSOR=$(find "$BIN" -name "resource_bundle_accessor.swift" | head -1)
+            echo "--- Patching $ACCESSOR ---"
+            sed -i '' 's/Bundle\.main\.bundleURL/Bundle.main.resourceURL!/' "$ACCESSOR"
+            grep "mainPath" "$ACCESSOR"
+
+            # Recompile entire KeyboardShortcuts module with patched accessor
+            # (SPM uses whole-module-optimization, so all files must be compiled together)
+            grep "resource_bundle_accessor.swift" "/tmp/build_$ARCH.log" \
+              | grep "swift-frontend" | head -1 \
+              | sed 's/-supplementary-output-file-map [^ ]*//' \
+              > "/tmp/recompile_$ARCH.sh"
+            bash "/tmp/recompile_$ARCH.sh"
+
+            # Re-link executable. The log is arch-scoped, so this regex matches
+            # exactly one line — the link command for this slice.
+            grep -E -- "-o .*/release/${APP_NAME}$" "/tmp/build_$ARCH.log" \
+              | head -1 > "/tmp/relink_$ARCH.sh"
+            bash "/tmp/relink_$ARCH.sh"
+
+            # Verify patch is in this slice
+            strings "$BIN/$APP_NAME" | grep -q "resourceURL"
+            echo "✓ $ARCH patch verified in binary"
+
+            # Copy out before the next iteration. Depending on the SPM version,
+            # --show-bin-path may return the same directory for both arches, in
+            # which case the next build would overwrite this slice in place.
+            cp "$BIN/$APP_NAME" "/tmp/$APP_NAME-$ARCH"
+            SLICES+=("/tmp/$APP_NAME-$ARCH")
+            echo "::endgroup::"
+          done
+
+          # Merge slices into a single universal binary
+          mkdir -p /tmp/universal
+          lipo -create "${SLICES[@]}" -output "/tmp/universal/$APP_NAME"
+
+          ARCHS=$(lipo -archs "/tmp/universal/$APP_NAME")
+          echo "universal archs: $ARCHS"
+          echo "$ARCHS" | grep -q "arm64"
+          echo "$ARCHS" | grep -q "x86_64"
+          echo "✓ Universal binary created (arm64 + x86_64)"
 
       # --- Code Signing ---
       - name: Import signing certificate
@@ -90,12 +125,16 @@ jobs:
           mkdir -p "$APP_DIR/MacOS"
           mkdir -p "$APP_DIR/Resources"
 
-          cp .build/release/${{ env.APP_NAME }} "$APP_DIR/MacOS/"
+          cp "/tmp/universal/${{ env.APP_NAME }}" "$APP_DIR/MacOS/"
 
-          # Copy SPM resource bundles into Contents/Resources/
-          find .build -name "*.bundle" -path "*/release/*" -exec cp -R {} "$APP_DIR/Resources/" \;
+          # Copy SPM resource bundles into Contents/Resources/.
+          # Scoped to one slice's bin dir — resource bundles are arch-independent,
+          # and an unscoped find would now match both slices and copy twice.
+          ARM_BIN=$(swift build -c release --arch arm64 --show-bin-path)
+          find "$ARM_BIN" -name "*.bundle" -exec cp -R {} "$APP_DIR/Resources/" \;
           echo "=== Resources ==="
           ls -la "$APP_DIR/Resources/" || true
+          test -n "$(ls -A "$APP_DIR/Resources/")" || { echo "resource bundle missing"; exit 1; }
 
           cp ${{ env.APP_NAME }}/Info.plist "$APP_DIR/"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" "$APP_DIR/Info.plist"
@@ -161,7 +200,7 @@ jobs:
           cd "${{ runner.temp }}"
           ditto -c -k --keepParent \
             "${{ env.APP_NAME }}.app" \
-            "${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip"
+            "${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-universal.zip"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -177,13 +216,14 @@ jobs:
             ```
 
             ### Manual
-            1. Download `${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip`
+            1. Download `${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-universal.zip`
             2. Unzip and move `${{ env.APP_NAME }}.app` to `/Applications`
             3. Grant Accessibility permission when prompted
 
             ✅ This build is signed and notarized by Apple.
+            ✅ Universal binary — runs natively on both Apple Silicon and Intel Macs.
           files: |
-            ${{ runner.temp }}/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-arm64.zip
+            ${{ runner.temp }}/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}-universal.zip
 
       # --- Homebrew Tap ---
       - name: Update Homebrew Cask
@@ -191,10 +231,19 @@ jobs:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          ZIP_URL="https://github.com/RAKKUNN/DualClip/releases/download/v${VERSION}/DualClip-${VERSION}-arm64.zip"
+          ZIP_URL="https://github.com/RAKKUNN/DualClip/releases/download/v${VERSION}/DualClip-${VERSION}-universal.zip"
 
-          # Download the release ZIP and compute SHA256
-          curl -sL "$ZIP_URL" -o /tmp/dualclip.zip
+          # Download the release ZIP and compute SHA256.
+          # -f so a 404 fails instead of silently hashing an error page; retried
+          # because the asset can take a few seconds to become downloadable.
+          rm -f /tmp/dualclip.zip
+          for i in 1 2 3 4 5; do
+            if curl -fsSL "$ZIP_URL" -o /tmp/dualclip.zip; then break; fi
+            echo "asset not downloadable yet (attempt $i/5), retrying in 10s"
+            sleep 10
+          done
+          unzip -tq /tmp/dualclip.zip
+
           SHA256=$(shasum -a 256 /tmp/dualclip.zip | awk '{print $1}')
           echo "SHA256: $SHA256"
 
@@ -204,6 +253,13 @@ jobs:
 
           sed -i '' "s/version \".*\"/version \"${VERSION}\"/" Casks/dualclip.rb
           sed -i '' "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Casks/dualclip.rb
+          # Asset name changed arm64 -> universal. Without this the cask URL keeps
+          # pointing at a file that no longer exists and `brew install` 404s.
+          sed -i '' 's/-arm64\.zip/-universal.zip/g' Casks/dualclip.rb
+
+          grep -q -- "-arm64" Casks/dualclip.rb \
+            && { echo "cask still references -arm64"; exit 1; } || true
+          cat Casks/dualclip.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

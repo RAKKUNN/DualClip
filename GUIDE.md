@@ -28,7 +28,7 @@ DualClip is a multi-slot clipboard manager that lives in the macOS menu bar. It 
 ### Option A: Download from GitHub Releases (Recommended)
 
 1. Go to the [latest release](https://github.com/RAKKUNN/DualClip/releases/latest)
-2. Download `DualClip-x.x.x-arm64.zip`
+2. Download `DualClip-x.x.x-universal.zip` (runs on both Apple Silicon and Intel Macs)
 3. Unzip the file
 4. Move `DualClip.app` to your `/Applications` folder
 5. Double-click to launch

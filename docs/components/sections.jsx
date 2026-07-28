@@ -333,7 +333,7 @@ const Install = () => (
           <div className="install-reqs mono">
             <span>macOS 13 (Ventura) or later</span>
             <span className="meta-dot"/>
-            <span>Apple Silicon required</span>
+            <span>Apple Silicon &amp; Intel</span>
           </div>
         </div>
       </div>
