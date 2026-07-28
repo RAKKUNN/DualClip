@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build (Apple Silicon)
     runs-on: macos-14
     steps:
       - name: Checkout
@@ -32,8 +32,41 @@ jobs:
       - name: Build (Release, arm64)
         run: swift build -c release --arch arm64
 
-      # Cross-compiled on the Apple Silicon runner. This only proves the x86_64
-      # slice compiles and links — it cannot be executed here (no guaranteed
-      # Rosetta), so runtime behaviour on Intel still needs manual verification.
+      # Cross-compiled here. Proves the x86_64 slice compiles and links, but it
+      # cannot be executed on this runner — the `intel` job below does that.
       - name: Build (Release, x86_64)
         run: swift build -c release --arch x86_64
+
+  intel:
+    name: Build (Intel)
+    # Real x86_64 hardware. `macos-13` (the old Intel image) was retired in
+    # December 2025; `macos-15-intel` is the replacement and is available
+    # until August 2027, after which Actions drops x86_64 entirely.
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No setup-swift here: use the toolchain preinstalled on the image.
+      # Package.swift pins swift-tools-version 5.9, so a newer compiler still
+      # builds in Swift 5 language mode, and this avoids depending on a 5.9
+      # toolchain being published for this image.
+      - name: Toolchain info
+        run: |
+          uname -m
+          swift --version
+
+      - name: Assert running on x86_64
+        run: test "$(uname -m)" = "x86_64"
+
+      - name: Build (Debug)
+        run: swift build -c debug
+
+      - name: Build (Release)
+        run: swift build -c release
+
+      - name: Verify binary architecture
+        run: |
+          BIN=$(swift build -c release --show-bin-path)/DualClip
+          file "$BIN"
+          lipo -archs "$BIN" | grep -q x86_64
