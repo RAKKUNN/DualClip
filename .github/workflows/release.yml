@@ -164,11 +164,26 @@ jobs:
           NOTARIZE_ZIP="${{ runner.temp }}/${{ env.APP_NAME }}-notarize.zip"
           NOTARY_ARGS="--apple-id $APPLE_ID --password $APPLE_ID_PASSWORD --team-id $APPLE_TEAM_ID"
 
-          # Submit for notarization
+          # Submit for notarization.
+          # The step runs under `bash -e`, so a plain VAR=$(cmd) would abort on
+          # failure *before* the output is echoed — hiding Apple's actual error
+          # message. Capture the exit status explicitly and always print.
+          set +e
           SUBMIT_OUTPUT=$(xcrun notarytool submit "$NOTARIZE_ZIP" $NOTARY_ARGS 2>&1)
+          SUBMIT_RC=$?
+          set -e
           echo "$SUBMIT_OUTPUT"
+          if [ "$SUBMIT_RC" -ne 0 ]; then
+            echo "::error::notarytool submit failed (exit $SUBMIT_RC) — see output above"
+            exit 1
+          fi
+
           SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
           echo "Submission ID: $SUBMISSION_ID"
+          if [ -z "$SUBMISSION_ID" ]; then
+            echo "::error::could not parse a submission id — refusing to poll for 20 minutes on an empty id"
+            exit 1
+          fi
 
           # Poll for completion with retries (max 20 min, check every 30s)
           MAX_ATTEMPTS=40
