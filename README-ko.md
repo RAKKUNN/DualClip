@@ -109,7 +109,7 @@ swift build -c release
 ## 아키텍처
 
 ```
-DualClip/
+DualClipCore/                # 라이브러리 타겟 — 모든 앱 로직 (테스트 대상)
 ├── App/                    # 앱 엔트리 포인트와 델리게이트
 ├── Models/                 # 데이터 모델 (SlotIdentifier, ClipboardSlot)
 ├── Services/               # 핵심 로직
@@ -118,6 +118,11 @@ DualClip/
 │   └── AccessibilityService # 권한 관리
 ├── Views/                  # SwiftUI 뷰 (MenuBar, Settings, Onboarding)
 └── Shortcuts/              # KeyboardShortcuts 통합
+
+DualClip/                   # 실행 타겟 — 진입점만
+└── main.swift
+
+Tests/DualClipCoreTests/    # 유닛 테스트 (@testable import DualClipCore)
 ```
 
 ## 보안 및 프라이버시

@@ -109,7 +109,7 @@ swift build -c release
 ## 架构
 
 ```
-DualClip/
+DualClipCore/                # 库目标 — 全部应用逻辑(单元测试覆盖)
 ├── App/                    # 应用入口与代理
 ├── Models/                 # 数据模型 (SlotIdentifier, ClipboardSlot)
 ├── Services/               # 核心逻辑
@@ -118,6 +118,11 @@ DualClip/
 │   └── AccessibilityService # 权限管理
 ├── Views/                  # SwiftUI 视图 (MenuBar, Settings, Onboarding)
 └── Shortcuts/              # KeyboardShortcuts 集成
+
+DualClip/                   # 可执行目标 — 仅入口点
+└── main.swift
+
+Tests/DualClipCoreTests/    # 单元测试 (@testable import DualClipCore)
 ```
 
 ## 安全与隐私

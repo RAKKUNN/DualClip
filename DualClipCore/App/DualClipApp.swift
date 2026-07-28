@@ -13,7 +13,18 @@ final class AppState: ObservableObject {
     }
 }
 
-@main
+/// Entry point for the executable target.
+///
+/// `@main` cannot be used here: this type lives in a library so that it can be
+/// unit tested, and the `main` symbol has to be emitted by the executable
+/// target instead (see `DualClip/main.swift`). This is the only symbol the
+/// executable needs, so it is also the only `public` one in DualClipCore.
+public enum DualClipLauncher {
+    public static func run() {
+        DualClipApp.main()
+    }
+}
+
 struct DualClipApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState()

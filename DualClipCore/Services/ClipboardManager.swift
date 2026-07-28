@@ -9,6 +9,10 @@ final class ClipboardManager: ObservableObject {
     @Published var slotB = ClipboardSlot()
     @Published var slotC = ClipboardSlot()
 
+    /// The pasteboard this manager observes. Injectable so tests can run against
+    /// a private `NSPasteboard.withUniqueName()` instead of the user's clipboard.
+    let pasteboard: NSPasteboard
+
     private var lastChangeCount: Int
     private var pollingTimer: DispatchSourceTimer?
 
@@ -18,10 +22,14 @@ final class ClipboardManager: ObservableObject {
     /// When true, polling is suspended (used during copy/paste operations).
     private(set) var isPollingPaused = false
 
-    init() {
-        lastChangeCount = NSPasteboard.general.changeCount
+    /// - Parameters:
+    ///   - pasteboard: Pasteboard to observe. Defaults to the system clipboard.
+    ///   - startPolling: Pass `false` in tests to drive `checkForChanges()` manually.
+    init(pasteboard: NSPasteboard = .general, startPolling autoStart: Bool = true) {
+        self.pasteboard = pasteboard
+        lastChangeCount = pasteboard.changeCount
         syncSlotA()
-        startPolling()
+        if autoStart { startPolling() }
     }
 
     deinit {
@@ -45,8 +53,10 @@ final class ClipboardManager: ObservableObject {
         pollingTimer = nil
     }
 
-    private func checkForChanges() {
-        let currentCount = NSPasteboard.general.changeCount
+    /// Internal rather than private so tests can drive a single poll tick
+    /// deterministically instead of waiting on the timer.
+    func checkForChanges() {
+        let currentCount = pasteboard.changeCount
         guard currentCount != lastChangeCount else { return }
         lastChangeCount = currentCount
 
@@ -69,13 +79,12 @@ final class ClipboardManager: ObservableObject {
     func resumePolling() {
         isPollingPaused = false
         ignoreChangeCount = 0
-        lastChangeCount = NSPasteboard.general.changeCount
+        lastChangeCount = pasteboard.changeCount
         syncSlotA()
     }
 
     /// Sync Slot A with the current system clipboard content (all types).
     private func syncSlotA() {
-        let pasteboard = NSPasteboard.general
         guard pasteboard.pasteboardItems?.isEmpty == false else { return }
         slotA.store(from: pasteboard)
         objectWillChange.send()
@@ -85,7 +94,6 @@ final class ClipboardManager: ObservableObject {
 
     /// Copy current system clipboard content into the specified slot (all types).
     func copyToSlot(_ identifier: SlotIdentifier) {
-        let pasteboard = NSPasteboard.general
         guard pasteboard.pasteboardItems?.isEmpty == false else { return }
         slot(for: identifier).store(from: pasteboard)
         objectWillChange.send()
@@ -112,14 +120,14 @@ final class ClipboardManager: ObservableObject {
     /// Write a slot's full content to the system clipboard.
     func writeSlotToSystemClipboard(_ identifier: SlotIdentifier) {
         ignoreChangeCount += 1
-        slot(for: identifier).write(to: NSPasteboard.general)
-        lastChangeCount = NSPasteboard.general.changeCount
+        slot(for: identifier).write(to: pasteboard)
+        lastChangeCount = pasteboard.changeCount
     }
 
     /// Backup entire system clipboard into a temporary slot.
     func backupSystemClipboard() -> ClipboardSlot {
         let backup = ClipboardSlot()
-        backup.store(from: NSPasteboard.general)
+        backup.store(from: pasteboard)
         return backup
     }
 
@@ -127,8 +135,8 @@ final class ClipboardManager: ObservableObject {
     func restoreSystemClipboard(_ backup: ClipboardSlot) {
         guard !backup.isEmpty else { return }
         ignoreChangeCount += 1
-        backup.write(to: NSPasteboard.general)
-        lastChangeCount = NSPasteboard.general.changeCount
+        backup.write(to: pasteboard)
+        lastChangeCount = pasteboard.changeCount
     }
 
     // MARK: - Helpers

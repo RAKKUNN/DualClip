@@ -109,7 +109,7 @@ swift build -c release
 ## Architecture
 
 ```
-DualClip/
+DualClipCore/                # Library target — all app logic (unit tested)
 ├── App/                    # App entry point and delegate
 ├── Models/                 # Data models (SlotIdentifier, ClipboardSlot)
 ├── Services/               # Core logic
@@ -118,6 +118,11 @@ DualClip/
 │   └── AccessibilityService # Permission management
 ├── Views/                  # SwiftUI views (MenuBar, Settings, Onboarding)
 └── Shortcuts/              # KeyboardShortcuts integration
+
+DualClip/                   # Executable target — entry point only
+└── main.swift
+
+Tests/DualClipCoreTests/    # Unit tests (@testable import DualClipCore)
 ```
 
 ## Security & Privacy

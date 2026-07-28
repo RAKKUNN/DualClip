@@ -1,7 +1,7 @@
 import AppKit
 
 /// The type of content stored in a clipboard slot.
-enum ClipboardContentType {
+enum ClipboardContentType: Equatable {
     case text
     case image
     case fileURL

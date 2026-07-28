@@ -378,9 +378,9 @@ swift build -c release
 ### Project Structure
 
 ```
-DualClip/
+DualClipCore/                      # Library target — all app logic
 ├── App/
-│   ├── DualClipApp.swift          # App entry point (MenuBarExtra)
+│   ├── DualClipApp.swift          # App scene + DualClipLauncher entry point
 │   └── AppDelegate.swift          # Permission checks, lifecycle
 ├── Models/
 │   ├── ClipboardSlot.swift        # Slot data model
@@ -397,7 +397,16 @@ DualClip/
 └── Shortcuts/
     ├── ShortcutNames.swift        # Shortcut name definitions
     └── ShortcutHandler.swift      # Shortcut-to-action binding
+
+DualClip/                          # Executable target
+├── main.swift                     # Calls DualClipLauncher.run()
+└── Info.plist
+
+Tests/DualClipCoreTests/           # Unit tests
 ```
+
+The logic lives in a library target because an executable target cannot be
+imported by a test target — its `main` symbol collides at link time.
 
 ---
 

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build (Apple Silicon)
+    name: Build & Test (Apple Silicon)
     runs-on: macos-14
     steps:
       - name: Checkout
@@ -29,6 +29,9 @@ jobs:
       - name: Build (Debug)
         run: swift build -c debug
 
+      - name: Test
+        run: swift test
+
       - name: Build (Release, arm64)
         run: swift build -c release --arch arm64
 
@@ -38,7 +41,7 @@ jobs:
         run: swift build -c release --arch x86_64
 
   intel:
-    name: Build (Intel)
+    name: Build & Test (Intel)
     # Real x86_64 hardware. `macos-13` (the old Intel image) was retired in
     # December 2025; `macos-15-intel` is the replacement and is available
     # until August 2027, after which Actions drops x86_64 entirely.
@@ -61,6 +64,11 @@ jobs:
 
       - name: Build (Debug)
         run: swift build -c debug
+
+      # This is the part that cannot be faked by cross-compiling: the suite
+      # actually executes on Intel hardware.
+      - name: Test
+        run: swift test
 
       - name: Build (Release)
         run: swift build -c release
