@@ -106,7 +106,7 @@ final class ClipboardSlotTests: XCTestCase {
         let slot = ClipboardSlot()
         slot.store(from: pasteboard)
 
-        XCTAssertEqual(slot.pasteboardItems?.count, 2)
+        XCTAssertEqual(slot.storedItems?.count, 2)
     }
 
     /// `NSPasteboardItem` can only ever belong to one pasteboard, so `write`
@@ -271,8 +271,6 @@ final class ClipboardSlotTests: XCTestCase {
         XCTAssertNil(slot.timestamp)
     }
 
-    /// Only checks that the slot ends up empty. Whether the backing bytes were
-    /// actually zeroed is not observable from here — see IMPROVEMENT-PLAN.md.
     func testSecureWipeEmptiesTheSlot() {
         writeString("sensitive", to: pasteboard)
         let slot = ClipboardSlot()
@@ -282,6 +280,29 @@ final class ClipboardSlotTests: XCTestCase {
 
         XCTAssertTrue(slot.isEmpty)
         XCTAssertNil(slot.textContent)
+        XCTAssertNil(slot.storedItems)
+    }
+
+    /// `resetBytes(in:)` only zeroes in place while the buffer is uniquely
+    /// referenced — under copy-on-write, a second reference would silently make
+    /// it zero a fresh copy and release the original untouched. This exercises
+    /// the wipe path on a slot whose data went through the normal store flow;
+    /// the ownership handling itself lives in `secureWipe`.
+    func testSecureWipeIsSafeToCallTwice() {
+        writeString("sensitive", to: pasteboard)
+        let slot = ClipboardSlot()
+        slot.store(from: pasteboard)
+
+        slot.secureWipe()
+        slot.secureWipe()
+
+        XCTAssertTrue(slot.isEmpty)
+    }
+
+    func testSecureWipeOnEmptySlotIsANoOp() {
+        let slot = ClipboardSlot()
+        slot.secureWipe()
+        XCTAssertTrue(slot.isEmpty)
     }
 
     func testStoreTextConvenienceSetsTextType() {

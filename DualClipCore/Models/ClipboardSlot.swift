@@ -10,8 +10,15 @@ enum ClipboardContentType: Equatable {
 
 /// Represents a single clipboard slot that can hold text, images, files, or RTF data.
 final class ClipboardSlot {
-    /// Raw pasteboard items for faithful clipboard restoration.
-    private(set) var pasteboardItems: [NSPasteboardItem]?
+    /// Raw pasteboard data for faithful clipboard restoration — one dictionary
+    /// of type→data per pasteboard item.
+    ///
+    /// Stored as plain `Data` rather than `NSPasteboardItem` so that
+    /// `secureWipe()` can zero the bytes through `Data.resetBytes(in:)`, a
+    /// documented mutating API. The previous implementation wrote through a
+    /// pointer obtained from an *immutable* `Data`'s `withUnsafeBytes`, which
+    /// is undefined behaviour and liable to break under Swift 6.
+    private(set) var storedItems: [[NSPasteboard.PasteboardType: Data]]?
 
     /// The dominant content type for display purposes.
     private(set) var contentType: ClipboardContentType?
@@ -28,7 +35,7 @@ final class ClipboardSlot {
     var timestamp: Date?
 
     var isEmpty: Bool {
-        pasteboardItems == nil
+        storedItems == nil
     }
 
     // MARK: - Preview
@@ -69,18 +76,19 @@ final class ClipboardSlot {
 
     /// Capture the current system pasteboard contents into this slot.
     func store(from pasteboard: NSPasteboard) {
-        // Deep-copy pasteboard items
-        var copiedItems: [NSPasteboardItem] = []
+        var copiedItems: [[NSPasteboard.PasteboardType: Data]] = []
         for item in pasteboard.pasteboardItems ?? [] {
-            let copy = NSPasteboardItem()
+            var copy: [NSPasteboard.PasteboardType: Data] = [:]
             for type in item.types {
                 if let data = item.data(forType: type) {
-                    copy.setData(data, forType: type)
+                    copy[type] = data
                 }
             }
-            copiedItems.append(copy)
+            if !copy.isEmpty {
+                copiedItems.append(copy)
+            }
         }
-        pasteboardItems = copiedItems.isEmpty ? nil : copiedItems
+        storedItems = copiedItems.isEmpty ? nil : copiedItems
         timestamp = Date()
 
         // Detect dominant content type and cache
@@ -89,9 +97,7 @@ final class ClipboardSlot {
 
     /// Store plain text directly (backward-compatible convenience).
     func store(_ text: String) {
-        let item = NSPasteboardItem()
-        item.setString(text, forType: .string)
-        pasteboardItems = [item]
+        storedItems = [[.string: Data(text.utf8)]]
         contentType = .text
         textContent = text
         imageContent = nil
@@ -102,20 +108,20 @@ final class ClipboardSlot {
     // MARK: - Write to Pasteboard
 
     /// Write this slot's contents to the given pasteboard.
+    ///
+    /// Builds fresh `NSPasteboardItem`s on every call — an item instance can
+    /// only ever belong to one pasteboard, so this is what makes repeated
+    /// pastes from the same slot work.
     func write(to pasteboard: NSPasteboard) {
-        guard let items = pasteboardItems else { return }
+        guard let storedItems else { return }
         pasteboard.clearContents()
 
-        // Re-copy items (NSPasteboardItem can only be on one pasteboard)
-        var freshItems: [NSPasteboardItem] = []
-        for item in items {
-            let copy = NSPasteboardItem()
-            for type in item.types {
-                if let data = item.data(forType: type) {
-                    copy.setData(data, forType: type)
-                }
+        let freshItems = storedItems.map { typedData -> NSPasteboardItem in
+            let item = NSPasteboardItem()
+            for (type, data) in typedData {
+                item.setData(data, forType: type)
             }
-            freshItems.append(copy)
+            return item
         }
         pasteboard.writeObjects(freshItems)
     }
@@ -124,7 +130,7 @@ final class ClipboardSlot {
 
     /// Clear the slot content.
     func clear() {
-        pasteboardItems = nil
+        storedItems = nil
         contentType = nil
         textContent = nil
         imageContent = nil
@@ -132,19 +138,32 @@ final class ClipboardSlot {
         timestamp = nil
     }
 
-    /// Securely wipe slot data by overwriting backing memory with zeros before releasing.
-    /// Called on app termination to prevent residual sensitive data in RAM.
+    /// Overwrite the slot's stored bytes with zeros before releasing them.
+    /// Called on normal app termination to reduce residual sensitive data in RAM.
+    ///
+    /// `resetBytes(in:)` mutates in place when this slot holds the only
+    /// reference to the buffer (copy-on-write), which is the case here: the
+    /// data was deep-copied out of the pasteboard at store time and never
+    /// escapes except as fresh copies handed to `write(to:)`.
+    ///
+    /// Honest limitations: the cached `textContent` string and `imageContent`
+    /// bitmap cannot be zeroed (immutable, and `NSImage` owns its storage), and
+    /// copies AppKit made internally are out of reach. This narrows the window;
+    /// it is not a guarantee.
     func secureWipe() {
-        if let items = pasteboardItems {
-            for item in items {
-                for type in item.types {
-                    if let data = item.data(forType: type) {
-                        data.withUnsafeBytes { rawBuffer in
-                            guard let baseAddress = rawBuffer.baseAddress else { return }
-                            let mutable = UnsafeMutableRawPointer(mutating: baseAddress)
-                            // Use volatile-equivalent pattern to prevent dead-store elimination
-                            memset_s(mutable, rawBuffer.count, 0, rawBuffer.count)
-                        }
+        // Take sole ownership before mutating. `resetBytes` only works in place
+        // when the buffer is uniquely referenced; if `storedItems` still held a
+        // second reference, copy-on-write would zero a fresh copy and release
+        // the original bytes untouched.
+        if var items = storedItems {
+            storedItems = nil
+            for itemIndex in items.indices {
+                // Snapshot the keys so no borrowed copy of the dictionary is
+                // alive while its values are mutated.
+                let keys = Array(items[itemIndex].keys)
+                for key in keys {
+                    if let count = items[itemIndex][key]?.count, count > 0 {
+                        items[itemIndex][key]?.resetBytes(in: 0..<count)
                     }
                 }
             }
