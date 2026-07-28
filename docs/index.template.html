@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>DualClip — Three clipboard slots for macOS</title>
+  <meta name="description" content="A macOS menu bar clipboard manager with three dedicated slots — copy and paste with custom shortcuts. RAM-only, zero network, MIT licensed. Universal binary for Apple Silicon and Intel."/>
+  <link rel="icon" href="assets/icon.png"/>
+  <link rel="canonical" href="https://rakkunn.github.io/DualClip/"/>
+  <meta name="theme-color" content="#0a0b0e"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="DualClip"/>
+  <meta property="og:title" content="DualClip — Three clipboards. Zero history."/>
+  <meta property="og:description" content="A macOS menu bar clipboard manager with three dedicated slots. Copy and paste with custom shortcuts. RAM-only, zero network, MIT licensed."/>
+  <meta property="og:url" content="https://rakkunn.github.io/DualClip/"/>
+  <meta property="og:image" content="https://rakkunn.github.io/DualClip/assets/og.png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:image:alt" content="DualClip — three clipboards, zero history. macOS menu bar app."/>
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="DualClip — Three clipboards. Zero history."/>
+  <meta name="twitter:description" content="Slot-based clipboard manager for macOS. Three dedicated slots, custom shortcuts, RAM-only, open source."/>
+  <meta name="twitter:image" content="https://rakkunn.github.io/DualClip/assets/og.png"/>
+  <meta name="twitter:image:alt" content="DualClip — three clipboards, zero history."/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="sections.css"/>
+
+  <!-- Set the theme before first paint so a light-mode visitor never sees a
+       dark flash. Inline on purpose: an external file would race the render. -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('dualclip-theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+          return;
+        }
+      } catch (e) { /* private mode — fall through to the OS preference */ }
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DualClip",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 13.0 or later",
+    "processorRequirements": "Apple Silicon or Intel (universal binary)",
+    "url": "https://rakkunn.github.io/DualClip/",
+    "downloadUrl": "https://github.com/RAKKUNN/DualClip/releases/latest",
+    "license": "https://opensource.org/licenses/MIT",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+</head>
+<body>
+<!--APP-->
+<script src="site.js" defer></script>
+</body>
+</html>

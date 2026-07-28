@@ -123,29 +123,15 @@ const Shortcut = ({ keys, sm = false }) => (
   </span>
 );
 
-/* Copy-to-clipboard button */
-const CopyButton = ({ text, label = "Copy" }) => {
-  const [copied, setCopied] = React.useState(false);
-  const onClick = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    } catch (e) {
-      const t = document.createElement('textarea');
-      t.value = text; document.body.appendChild(t); t.select();
-      document.execCommand('copy'); document.body.removeChild(t);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
-    }
-  };
-  return (
-    <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={onClick} aria-label={`Copy ${text}`}>
-      {copied ? <Icon.Check size={12}/> : <Icon.Copy size={12}/>}
-      <span>{copied ? 'Copied' : label}</span>
-    </button>
-  );
-};
+/* Copy-to-clipboard button.
+   Renders both states; site.js toggles the `copied` class. Keeping the markup
+   state-free is what lets this page be prerendered to static HTML. */
+const CopyButton = ({ text, label = "Copy" }) => (
+  <button className="copy-btn" data-copy={text} aria-label={`Copy ${text}`}>
+    <span className="copy-idle"><Icon.Copy size={12}/><span>{label}</span></span>
+    <span className="copy-done"><Icon.Check size={12}/><span>Copied</span></span>
+  </button>
+);
 
 /* macOS window chrome */
 const MacWindow = ({ title, children, accent, transparent = false }) => (

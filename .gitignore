@@ -33,3 +33,6 @@ build/
 # etc
 .windsurf/
 analysis/
+
+# Node (docs site build tooling)
+node_modules/

@@ -192,3 +192,20 @@ section { padding: 88px 0; position: relative; }
 }
 .code-block .copy-btn:hover { color: var(--fg); border-color: var(--fg-dim); }
 .code-block .copy-btn.copied { color: var(--accent-teal); border-color: var(--accent-teal); }
+
+/* Both button states are in the markup so the page can be prerendered;
+   only one is ever visible. */
+.copy-btn .copy-idle,
+.copy-btn .copy-done { display: inline-flex; align-items: center; gap: 6px; }
+.copy-btn .copy-done { display: none; }
+.copy-btn.copied .copy-idle { display: none; }
+.copy-btn.copied .copy-done { display: inline-flex; }
+
+/* Same idea for the theme toggle: ship both icons, show the one that matches
+   the current theme. Dark shows the sun (tap to go light), and vice versa. */
+.nav-theme .theme-icon { display: none; align-items: center; }
+:root[data-theme="dark"] .nav-theme .theme-icon-sun { display: inline-flex; }
+:root[data-theme="light"] .nav-theme .theme-icon-moon { display: inline-flex; }
+
+/* Demo panels: both rendered, one shown. `hidden` covers the no-JS case. */
+.demo-media.is-hidden { display: none; }

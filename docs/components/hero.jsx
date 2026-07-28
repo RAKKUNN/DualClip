@@ -17,7 +17,7 @@ const MenuBarPopover = ({ active = 'A' }) => {
       </div>
       <div className="popover-slots">
         {slots.map(s => (
-          <div key={s.id} className={`slot-row ${active === s.id ? 'is-active' : ''}`}>
+          <div key={s.id} data-slot-row={s.id} className={`slot-row ${active === s.id ? 'is-active' : ''}`}>
             <div className="slot-row-left">
               <span className={`slot-chip slot-${s.id}`}>{s.id}</span>
               <div className="slot-content">
@@ -56,13 +56,8 @@ const HEADLINE_VARIANTS = {
 };
 
 const Hero = ({ headlineVariant = 'zero-history', showShortcuts = true }) => {
-  const [activeSlot, setActiveSlot] = React.useState('A');
-  React.useEffect(() => {
-    const i = setInterval(() => {
-      setActiveSlot(s => (s === 'A' ? 'B' : s === 'B' ? 'C' : 'A'));
-    }, 2400);
-    return () => clearInterval(i);
-  }, []);
+  // Renders the first frame only; site.js rotates the highlighted slot.
+  const activeSlot = 'A';
 
   return (
     <header className="hero" data-screen-label="Hero">
@@ -153,13 +148,8 @@ const Hero = ({ headlineVariant = 'zero-history', showShortcuts = true }) => {
   );
 };
 
-const Nav = () => {
-  const [theme, setTheme] = React.useState('dark');
-  React.useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-  return (
-    <nav className="nav container">
+const Nav = () => (
+  <nav className="nav container">
       <a className="nav-brand" href="#top">
         <img src="assets/icon.png" alt="DualClip" width="28" height="28" className="nav-icon"/>
         <span className="nav-name">DualClip</span>
@@ -171,19 +161,16 @@ const Nav = () => {
         <a href="#install">Install</a>
       </div>
       <div className="nav-actions">
-        <button
-          className="nav-theme"
-          onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Icon.Sun size={14}/> : <Icon.Moon size={14}/>}
+        {/* Both icons ship; CSS shows the one matching :root[data-theme]. */}
+        <button className="nav-theme" data-theme-toggle aria-label="Toggle theme">
+          <span className="theme-icon theme-icon-sun"><Icon.Sun size={14}/></span>
+          <span className="theme-icon theme-icon-moon"><Icon.Moon size={14}/></span>
         </button>
         <a className="nav-github" href="https://github.com/RAKKUNN/DualClip" target="_blank" rel="noreferrer">
           <Icon.Github size={16}/>
         </a>
       </div>
     </nav>
-  );
-};
+);
 
 Object.assign(window, { Hero, Nav, MenuBarPopover });

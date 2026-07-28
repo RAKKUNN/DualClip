@@ -18,11 +18,8 @@ const Insight = () => (
 );
 
 const HowItWorks = () => {
-  const [step, setStep] = React.useState(0);
-  React.useEffect(() => {
-    const i = setInterval(() => setStep(s => (s + 1) % 3), 3000);
-    return () => clearInterval(i);
-  }, []);
+  // First frame only; site.js advances the storyboard and handles clicks.
+  const step = 0;
 
   const steps = [
     {
@@ -67,8 +64,8 @@ const HowItWorks = () => {
             {steps.map((s, i) => (
               <li
                 key={i}
+                data-how-step={i}
                 className={`how-step ${i === step ? 'is-active' : ''}`}
-                onClick={() => setStep(i)}
               >
                 <div className="how-step-num mono">{s.n}</div>
                 <div className="how-step-body">
@@ -91,7 +88,7 @@ const HowItWorks = () => {
 const HowStage = ({ step }) => {
   // Animated 3-step storyboard
   return (
-    <div className={`how-stage-inner step-${step}`}>
+    <div data-how-stage className={`how-stage-inner step-${step}`}>
       {/* document */}
       <div className="stage-doc">
         <div className="stage-doc-bar"/>
@@ -116,7 +113,7 @@ const HowStage = ({ step }) => {
           <span className="slot-chip slot-A">A</span>
           <span className="mono stage-slot-hint">empty</span>
         </div>
-        <div className={`stage-slot ${step === 0 || step === 1 ? 'is-loaded slot-b' : ''}`}>
+        <div data-stage-slot-b className={`stage-slot ${step === 0 || step === 1 ? 'is-loaded slot-b' : ''}`}>
           <span className="slot-chip slot-B">B</span>
           <span className="mono stage-slot-hint">{step === 0 || step === 1 ? 'handleCopy()' : 'empty'}</span>
         </div>
@@ -138,17 +135,18 @@ const Features = () => {
   const features = [
     { icon: <Icon.Slots size={18}/>, title: '3 dedicated slots', desc: 'A, B and C — labelled, isolated, instantly addressable. No history list to scroll.' },
     { icon: <Icon.Keyboard size={18}/>, title: 'Customizable shortcuts', desc: 'Bind copy & paste to any modifier combination. Defaults make sense; rebinds take seconds.' },
-    { icon: <Icon.Zap size={18}/>, title: 'Atomic paste · ~150ms', desc: 'DualClip swaps in your slot, pastes, and restores your system clipboard before you blink.' },
+    { icon: <Icon.Zap size={18}/>, title: 'Atomic paste · ~200ms', desc: 'DualClip swaps in your slot, pastes, and restores your system clipboard before you blink. Tune the timing if an app needs longer.' },
     { icon: <Icon.Menubar size={18}/>, title: 'Menu bar popover', desc: 'A peek at what\u2019s in each slot — text, code, or image preview — without leaving the keyboard.' },
     { icon: <Icon.Cpu size={18}/>, title: 'RAM-only', desc: 'Slot contents live in memory. Quit the app or shut down the Mac and they\u2019re gone.' },
     { icon: <Icon.WifiOff size={18}/>, title: 'Zero network', desc: 'No telemetry, no analytics, no cloud, no accounts. The source code says so.' },
+    { icon: <Icon.Cpu size={18}/>, title: 'Universal binary', desc: 'One download runs natively on Apple Silicon and Intel Macs. Signed and notarized by Apple.' },
   ];
   return (
     <section id="features" className="section-features" data-screen-label="Features">
       <div className="container">
         <div className="section-head">
           <div className="eyebrow"><span className="dot"/> Features</div>
-          <h2>Six things, all small, none of them surprises.</h2>
+          <h2>Seven things, all small, none of them surprises.</h2>
         </div>
         <div className="feature-grid">
           {features.map((f, i) => (
@@ -164,44 +162,38 @@ const Features = () => {
   );
 };
 
-const Demo = () => {
-  const [active, setActive] = React.useState('text');
-  return (
-    <section id="demo" className="section-demo" data-screen-label="Demo">
-      <div className="container">
-        <div className="section-head">
-          <div className="eyebrow"><span className="dot"/> See it</div>
-          <h2>Text, code, images. <span className="muted">Same three keys.</span></h2>
-        </div>
-        <div className="demo-tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={active === 'text'}
-            className={`demo-tab ${active === 'text' ? 'is-active' : ''}`}
-            onClick={() => setActive('text')}
-          >Text demo</button>
-          <button
-            role="tab"
-            aria-selected={active === 'image'}
-            className={`demo-tab ${active === 'image' ? 'is-active' : ''}`}
-            onClick={() => setActive('image')}
-          >Image / rich content</button>
-        </div>
-        <div className="demo-frame">
-          <MacWindow title={active === 'text' ? 'DualClip — text demo' : 'DualClip — image demo'}>
-            <div className="demo-media">
-              <img
-                src={active === 'text' ? 'assets/demo-text.gif' : 'assets/demo-image.gif'}
-                alt={active === 'text' ? 'DualClip stashing and recalling three text snippets' : 'DualClip stashing and recalling an image'}
-                loading="lazy"
-              />
-            </div>
-          </MacWindow>
-        </div>
+/* Both panels are rendered and toggled with a class, so the tabs work from
+   static HTML and each GIF keeps its own lazy-loading. */
+const Demo = () => (
+  <section id="demo" className="section-demo" data-screen-label="Demo">
+    <div className="container">
+      <div className="section-head">
+        <div className="eyebrow"><span className="dot"/> See it</div>
+        <h2>Text, code, images. <span className="muted">Same three keys.</span></h2>
       </div>
-    </section>
-  );
-};
+      <div className="demo-tabs" role="tablist">
+        <button role="tab" id="demo-tab-text" aria-controls="demo-panel-text" aria-selected="true"
+                data-demo-tab="text" className="demo-tab is-active">Text demo</button>
+        <button role="tab" id="demo-tab-image" aria-controls="demo-panel-image" aria-selected="false"
+                data-demo-tab="image" className="demo-tab">Image / rich content</button>
+      </div>
+      <div className="demo-frame">
+        <MacWindow title={<span data-demo-title>DualClip — text demo</span>}>
+          <div className="demo-media" role="tabpanel" id="demo-panel-text"
+               aria-labelledby="demo-tab-text" data-demo-panel="text">
+            <img src="assets/demo-text.gif"
+                 alt="DualClip stashing and recalling three text snippets" loading="lazy"/>
+          </div>
+          <div className="demo-media is-hidden" role="tabpanel" id="demo-panel-image"
+               aria-labelledby="demo-tab-image" data-demo-panel="image" hidden>
+            <img src="assets/demo-image.gif"
+                 alt="DualClip stashing and recalling an image" loading="lazy"/>
+          </div>
+        </MacWindow>
+      </div>
+    </div>
+  </section>
+);
 
 const Compare = () => {
   const rows = [
