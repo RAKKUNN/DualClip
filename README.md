@@ -61,7 +61,7 @@ All shortcuts are fully customizable in **Settings > Shortcuts**.
 
 1. **Slot A** automatically mirrors the system clipboard (⌘C / ⌘V)
 2. **Slot B/C** store content independently via their own copy shortcuts
-3. **Atomic Paste** temporarily swaps the system clipboard, simulates ⌘V, then restores the original clipboard — all within ~150ms
+3. **Atomic Paste** temporarily swaps the system clipboard, simulates ⌘V, then restores the original clipboard — typically within ~200ms, adjustable in **Settings > General**
 
 ## Requirements
 
@@ -135,7 +135,7 @@ Tests/DualClipCoreTests/    # Unit tests (@testable import DualClipCore)
 ## Roadmap
 
 - [x] Secure input field detection (auto-disable in password fields)
-- [x] RAM zeroing on app termination
+- [x] RAM zeroing on normal app termination (not on force quit)
 - [x] Image/rich text clipboard support
 - [x] GitHub Actions CI/CD + Notarization
 - [x] Homebrew Cask distribution

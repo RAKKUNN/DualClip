@@ -6,9 +6,6 @@ final class ShortcutHandler {
 
     private let clipboardManager: ClipboardManager
 
-    /// Delay after simulating ⌘C before reading the clipboard (milliseconds).
-    private let copyReadDelayMs: Int = 100
-
     init(clipboardManager: ClipboardManager) {
         self.clipboardManager = clipboardManager
         registerShortcuts()
@@ -37,27 +34,32 @@ final class ShortcutHandler {
     }
 
     /// Copy the current selection into the specified slot.
-    /// Simulates ⌘C, waits briefly, then reads the clipboard into the slot.
+    /// Simulates ⌘C, waits for the clipboard to actually change, then reads it
+    /// into the slot.
     private func handleCopy(to slot: SlotIdentifier) {
         // Skip when a secure input field (e.g. password) is focused
         guard !AccessibilityService.shared.isSecureInputActive() else { return }
 
+        let manager = clipboardManager
+
         // Pause polling to prevent Slot A from racing with this copy
-        clipboardManager.pausePolling()
+        manager.pausePolling()
 
         // Backup current system clipboard so Slot A stays unchanged
-        let backup = clipboardManager.backupSystemClipboard()
+        let backup = manager.backupSystemClipboard()
+        let baseline = manager.currentChangeCount
 
         // Simulate ⌘C to capture the current selection
         AtomicPasteService.shared.simulateCopy()
 
-        // Wait for the system to process the copy, then store in slot and restore
-        let manager = clipboardManager
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(copyReadDelayMs)) { [weak self] in
-            if let self {
-                self.clipboardManager.copyToSlot(slot)
+        PasteboardWaiter.waitForChange(on: manager.pasteboard, from: baseline) { changed in
+            // No change means the ⌘C produced nothing — an empty selection, or
+            // an app that ignores the keystroke. Storing anyway would copy
+            // whatever was already on the clipboard into the slot, which looks
+            // to the user like the shortcut grabbed the wrong thing.
+            if changed {
+                manager.copyToSlot(slot)
             }
-            // Always restore and resume, even if self is deallocated
             manager.restoreSystemClipboard(backup)
             manager.resumePolling()
         }

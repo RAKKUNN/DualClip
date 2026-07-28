@@ -16,11 +16,22 @@ final class ClipboardManager: ObservableObject {
     private var lastChangeCount: Int
     private var pollingTimer: DispatchSourceTimer?
 
-    /// Counter to ignore N clipboard changes caused by our own writes.
-    private var ignoreChangeCount = 0
+    /// `changeCount` as of our own most recent write.
+    ///
+    /// Replaces a "skip the next N changes" counter, which assumed one write
+    /// bumps `changeCount` by exactly one. That increment is not contractual —
+    /// `clearContents()` and `writeObjects(_:)` are separate operations and the
+    /// count can drift between macOS versions. Worse, an over-count would
+    /// swallow the *next* genuine change, so a copy made right after a paste
+    /// never reached Slot A. Recording the observed value instead makes the
+    /// check exact.
+    private var ownedChangeCount: Int?
 
     /// When true, polling is suspended (used during copy/paste operations).
     private(set) var isPollingPaused = false
+
+    /// Current `changeCount`, for callers that need a baseline before writing.
+    var currentChangeCount: Int { pasteboard.changeCount }
 
     /// - Parameters:
     ///   - pasteboard: Pasteboard to observe. Defaults to the system clipboard.
@@ -60,10 +71,8 @@ final class ClipboardManager: ObservableObject {
         guard currentCount != lastChangeCount else { return }
         lastChangeCount = currentCount
 
-        if ignoreChangeCount > 0 {
-            ignoreChangeCount -= 1
-            return
-        }
+        // Our own write, not the user copying something.
+        if currentCount == ownedChangeCount { return }
 
         if isPollingPaused { return }
 
@@ -78,7 +87,7 @@ final class ClipboardManager: ObservableObject {
     /// Resume polling and resync Slot A with current clipboard.
     func resumePolling() {
         isPollingPaused = false
-        ignoreChangeCount = 0
+        ownedChangeCount = nil
         lastChangeCount = pasteboard.changeCount
         syncSlotA()
     }
@@ -119,8 +128,9 @@ final class ClipboardManager: ObservableObject {
 
     /// Write a slot's full content to the system clipboard.
     func writeSlotToSystemClipboard(_ identifier: SlotIdentifier) {
-        ignoreChangeCount += 1
         slot(for: identifier).write(to: pasteboard)
+        // Record what the write actually produced rather than assuming +1.
+        ownedChangeCount = pasteboard.changeCount
         lastChangeCount = pasteboard.changeCount
     }
 
@@ -134,8 +144,8 @@ final class ClipboardManager: ObservableObject {
     /// Restore previously backed-up clipboard contents.
     func restoreSystemClipboard(_ backup: ClipboardSlot) {
         guard !backup.isEmpty else { return }
-        ignoreChangeCount += 1
         backup.write(to: pasteboard)
+        ownedChangeCount = pasteboard.changeCount
         lastChangeCount = pasteboard.changeCount
     }
 

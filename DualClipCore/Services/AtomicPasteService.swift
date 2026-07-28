@@ -10,9 +10,26 @@ final class AtomicPasteService {
 
     static let shared = AtomicPasteService()
 
-    /// Delay before restoring the original clipboard (milliseconds).
-    /// 150ms is an empirically safe value to prevent race conditions.
-    private let restoreDelayMs: Int = 150
+    /// Key used to persist the user's restore-delay preference.
+    static let restoreDelayDefaultsKey = "pasteRestoreDelayMs"
+
+    static let defaultRestoreDelayMs = 200
+    static let restoreDelayRangeMs = 100...500
+
+    /// How long to leave slot content on the clipboard before putting the
+    /// user's own content back.
+    ///
+    /// This one genuinely cannot be derived from `changeCount`: that only
+    /// reports writes, and what we are waiting for here is the target app
+    /// *reading* the pasteboard, which AppKit does not expose. So it stays a
+    /// delay — but a longer default than before, and adjustable in Settings for
+    /// apps that take their time.
+    var restoreDelayMs: Int {
+        let stored = UserDefaults.standard.integer(forKey: Self.restoreDelayDefaultsKey)
+        guard stored != 0 else { return Self.defaultRestoreDelayMs }
+        return min(max(stored, Self.restoreDelayRangeMs.lowerBound),
+                   Self.restoreDelayRangeMs.upperBound)
+    }
 
     private init() {}
 
@@ -28,16 +45,28 @@ final class AtomicPasteService {
 
         // 1. Backup current system clipboard (all types)
         let backup = clipboardManager.backupSystemClipboard()
+        let before = clipboardManager.currentChangeCount
 
         // 2. Replace system clipboard with slot data (all types)
         clipboardManager.writeSlotToSystemClipboard(slot)
+        let afterWrite = clipboardManager.currentChangeCount
 
-        // 3. Simulate ⌘V keystroke
+        // 3. Only send ⌘V once the write is confirmed. Firing blind risks
+        //    pasting whatever was on the clipboard before.
+        guard afterWrite != before else {
+            clipboardManager.resumePolling()
+            return
+        }
         simulatePaste()
 
-        // 4. Restore original clipboard after delay, then resume polling
+        // 4. Restore the original clipboard, then resume polling.
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(restoreDelayMs)) {
-            clipboardManager.restoreSystemClipboard(backup)
+            // If the count moved, someone else wrote to the clipboard while we
+            // were waiting — most likely the user pressing ⌘C. Restoring now
+            // would silently destroy what they just copied.
+            if clipboardManager.currentChangeCount == afterWrite {
+                clipboardManager.restoreSystemClipboard(backup)
+            }
             clipboardManager.resumePolling()
         }
     }

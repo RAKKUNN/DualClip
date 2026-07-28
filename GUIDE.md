@@ -261,8 +261,10 @@ Shortcuts Tab:
 [3] Simulate ⌘V
     Send the paste command to the target application
 
-[4] Wait 150ms
-    Allow time for the target app to read the clipboard
+[4] Wait for the restore delay (200ms by default)
+    Allow time for the target app to read the clipboard.
+    AppKit reports pasteboard *writes* but not *reads*, so this
+    step cannot be replaced by observing changeCount.
 
 [5] Restore the system clipboard
     Revert to the original content saved in step [1]
@@ -270,7 +272,7 @@ Shortcuts Tab:
 
 ### Why Does It Work This Way?
 
-macOS paste (⌘V) always reads from the **system clipboard (`NSPasteboard.general`)**. To paste content from Slot B, DualClip must temporarily replace the system clipboard. Atomic Paste completes this entire cycle — backup, swap, paste, restore — **within 150ms**, so the user never notices the clipboard was momentarily changed.
+macOS paste (⌘V) always reads from the **system clipboard (`NSPasteboard.general`)**. To paste content from Slot B, DualClip must temporarily replace the system clipboard. Atomic Paste completes this entire cycle — backup, swap, paste, restore — **within about 200ms**, so the user never notices the clipboard was momentarily changed. If something else writes to the clipboard during that window (you pressing ⌘C, say), DualClip skips the restore rather than overwriting what you just copied.
 
 ---
 
@@ -330,9 +332,9 @@ DualClip is designed with security as a top priority.
 
 ### Previous clipboard content disappears after pasting
 
-**Cause**: The target application may take longer than 150ms to read the clipboard.
+**Cause**: The target application may take longer than the restore delay to read the clipboard.
 
-**Fix**: The current version does not allow adjusting the restore delay. If this occurs frequently, please report it via [GitHub Issues](https://github.com/RAKKUNN/DualClip/issues).
+**Fix**: Increase **Settings > General > Restore delay** (100–500 ms, 200 ms by default). If a high value still does not help, please report it via [GitHub Issues](https://github.com/RAKKUNN/DualClip/issues).
 
 ### Menu bar icon is not visible
 

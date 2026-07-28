@@ -7,6 +7,9 @@ struct SettingsView: View {
     @EnvironmentObject var clipboardManager: ClipboardManager
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
+    @AppStorage(AtomicPasteService.restoreDelayDefaultsKey)
+    private var pasteRestoreDelayMs = AtomicPasteService.defaultRestoreDelayMs
+
     var body: some View {
         TabView {
             generalTab
@@ -66,6 +69,24 @@ struct SettingsView: View {
                     }
 
                 Text("Automatically start DualClip when you log in.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Section("Paste Timing") {
+                Slider(
+                    value: Binding(
+                        get: { Double(pasteRestoreDelayMs) },
+                        set: { pasteRestoreDelayMs = Int($0) }
+                    ),
+                    in: Double(AtomicPasteService.restoreDelayRangeMs.lowerBound)
+                        ...Double(AtomicPasteService.restoreDelayRangeMs.upperBound),
+                    step: 50
+                ) {
+                    Text("Restore delay: \(pasteRestoreDelayMs) ms")
+                }
+
+                Text("How long slot content stays on the clipboard before your own content is put back. Increase this if pasting into slower apps occasionally fails.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

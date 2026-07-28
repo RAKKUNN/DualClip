@@ -67,6 +67,37 @@ final class ClipboardManagerTests: XCTestCase {
         XCTAssertEqual(manager.slotA.textContent, "user content")
     }
 
+    /// Regression test. The previous implementation counted how many upcoming
+    /// changes to ignore and incremented that counter on every write of our own.
+    /// The counter was only spent on the *next* observed change, so a copy made
+    /// right after DualClip touched the clipboard got swallowed and never
+    /// reached Slot A. Tracking the observed `changeCount` instead makes the
+    /// check exact.
+    func testExternalChangeRightAfterOwnWriteStillUpdatesSlotA() {
+        write("user content")
+        let manager = makeManager()
+        manager.slotB.store("slot b content")
+
+        manager.writeSlotToSystemClipboard(.B)
+        manager.checkForChanges()
+        XCTAssertEqual(manager.slotA.textContent, "user content", "our own write must be ignored")
+
+        write("copied moments later")
+        manager.checkForChanges()
+
+        XCTAssertEqual(manager.slotA.textContent, "copied moments later")
+    }
+
+    func testCurrentChangeCountTracksThePasteboard() {
+        write("first")
+        let manager = makeManager()
+        let before = manager.currentChangeCount
+
+        write("second")
+
+        XCTAssertNotEqual(manager.currentChangeCount, before)
+    }
+
     func testPausedPollingDoesNotUpdateSlotA() {
         write("before pause")
         let manager = makeManager()
